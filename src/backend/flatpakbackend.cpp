@@ -24,6 +24,7 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
     , m_installedModel(new AppListModel(this))
     , m_browseModel(new AppListModel(this))
     , m_updatesModel(new AppListModel(this))
+    , m_runtimeUpdatesModel(new AppListModel(this))
 {
     qRegisterMetaType<QList<AppItem *>>("QList<AppItem*>");
 
@@ -60,6 +61,7 @@ FlatpakBackend::~FlatpakBackend()
 AppListModel *FlatpakBackend::installedModel() const { return m_installedModel; }
 AppListModel *FlatpakBackend::browseModel() const { return m_browseModel; }
 AppListModel *FlatpakBackend::updatesModel() const { return m_updatesModel; }
+AppListModel *FlatpakBackend::runtimeUpdatesModel() const { return m_runtimeUpdatesModel; }
 
 QStringList FlatpakBackend::remotes() const { return m_remotes; }
 QVariantList FlatpakBackend::remotesInfo() const { return m_remotesInfo; }
@@ -123,6 +125,8 @@ void FlatpakBackend::refreshMetadata()
         m_appstream->enrich(item);
     for (auto *item : m_updatesModel->items())
         m_appstream->enrich(item);
+    for (auto *item : m_runtimeUpdatesModel->items())
+        m_appstream->enrich(item);
     Q_EMIT installedLoaded();
     Q_EMIT browseLoaded();
     Q_EMIT updatesLoaded();
@@ -141,7 +145,8 @@ bool FlatpakBackend::isInstalled(const QString &key) const
 
 bool FlatpakBackend::hasUpdate(const QString &key) const
 {
-    return m_updatesModel->indexOfKey(key) >= 0;
+    return m_updatesModel->indexOfKey(key) >= 0
+        || m_runtimeUpdatesModel->indexOfKey(key) >= 0;
 }
 
 void FlatpakBackend::installApp(const QString &appId, const QString &remote,
@@ -245,7 +250,9 @@ QObject *FlatpakBackend::findAppItem(const QString &appId, const QString &branch
 
 QObject *FlatpakBackend::findAppByKey(const QString &key) const
 {
-    const AppListModel *models[] = { m_browseModel, m_installedModel, m_updatesModel };
+    const AppListModel *models[] = {
+        m_browseModel, m_installedModel, m_updatesModel, m_runtimeUpdatesModel
+    };
     for (const AppListModel *model : models) {
         const QList<AppItem *> items = model->items();
         for (AppItem *item : items) {
@@ -297,9 +304,28 @@ void FlatpakBackend::onInstalledRefsReady(QList<AppItem *> items)
 
 void FlatpakBackend::onUpdatesRefsReady(QList<AppItem *> items)
 {
+    QList<AppItem *> appUpdates;
+    QList<AppItem *> runtimeUpdates;
+    appUpdates.reserve(items.size());
+    runtimeUpdates.reserve(items.size());
+
+    for (AppItem *item : items) {
+        if (!item)
+            continue;
+        if (item->isRuntime())
+            runtimeUpdates.append(item);
+        else
+            appUpdates.append(item);
+    }
+
+    // Keep application updates separate so the sidebar indicator can ignore
+    // runtime updates, while still showing them in the Updates page.
     m_updatesModel->clear();
-    m_updatesModel->appendItems(items);
+    m_runtimeUpdatesModel->clear();
+    m_updatesModel->appendItems(appUpdates);
+    m_runtimeUpdatesModel->appendItems(runtimeUpdates);
     enrichBatch(m_updatesModel, 0);
+    enrichBatch(m_runtimeUpdatesModel, 0);
     setBusy(false);
     Q_EMIT updatesLoaded();
 }
@@ -396,6 +422,7 @@ void FlatpakBackend::onAppStreamLoaded(bool success)
     enrichBatch(m_installedModel, 0);
     enrichBatch(m_browseModel, 0);
     enrichBatch(m_updatesModel, 0);
+    enrichBatch(m_runtimeUpdatesModel, 0);
     Q_EMIT installedLoaded();
     Q_EMIT browseLoaded();
     Q_EMIT updatesLoaded();
