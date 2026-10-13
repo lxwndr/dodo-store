@@ -221,7 +221,7 @@ ApplicationWindow {
             Repeater {
                 model: [
                     { label: qsTr("Installed"), icon: "package", page: 2 },
-                    { label: qsTr("Updates"), icon: "software-update-available", page: 3 }
+                    { label: qsTr("Updates"), icon: "refresh-cw", page: 3 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
