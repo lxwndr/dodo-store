@@ -17,6 +17,7 @@
 #include <QMetaType>
 #include <QSet>
 #include <QHash>
+#include <QStringList>
 #include <QVariantMap>
 #include <QUrl>
 #include <QRegularExpression>
@@ -743,6 +744,7 @@ void FlatpakWorker::installDefaultDeepinThemes()
         QStringLiteral("org.gtk.Gtk3theme.deepin-dark")
     };
     const auto fail = [this, &operationRef](const QString &message) {
+        d->setProgress(100, QString());
         Q_EMIT operationFinished(operationRef, false, message);
     };
 
