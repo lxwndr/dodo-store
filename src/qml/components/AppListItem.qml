@@ -28,8 +28,8 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 16
         anchors.verticalCenter: parent.verticalCenter
-        width: 40
-        height: 40
+        width: 48
+        height: 48
         radius: 8
         color: palette.base
         Image {
@@ -37,7 +37,7 @@ Rectangle {
             anchors.margins: 6
             source: model.icon
             fillMode: Image.PreserveAspectFit
-            sourceSize { width: 28; height: 28 }
+            sourceSize { width: 36; height: 36 }
         }
     }
 
