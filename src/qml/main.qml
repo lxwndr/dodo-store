@@ -227,7 +227,9 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     icon.name: modelData.icon
                     checked: root.pageIndex === modelData.page
-                    text: modelData.label
+                    text: modelData.page === 3 && flatpakBackend.updatesModel.count > 0
+                          ? modelData.label + " (" + flatpakBackend.updatesModel.count + ")"
+                          : modelData.label
                     onClicked: root.showPage(modelData.page)
                 }
             }
