@@ -14,20 +14,22 @@ Item {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 16
-        spacing: 12
+        spacing: 8
 
         RowLayout {
             Layout.fillWidth: true
             spacing: 8
             Label {
                 Layout.fillWidth: true
-                text: qsTr("%1 available updates").arg(flatpakBackend.updatesModel.count)
+                text: qsTr("%1 application updates available").arg(flatpakBackend.updatesModel.count)
                 font: DTK.fontManager.t8
                 color: palette.windowText
             }
             Button {
                 text: qsTr("Update All")
-                enabled: flatpakBackend.updatesModel.count > 0 && !flatpakBackend.busy
+                enabled: (flatpakBackend.updatesModel.count
+                          + flatpakBackend.runtimeUpdatesModel.count) > 0
+                         && !flatpakBackend.busy
                 onClicked: flatpakBackend.updateAll()
             }
             Button {
@@ -47,15 +49,27 @@ Item {
             visible: running
         }
 
-        ListView {
-            id: list
+        Label {
+            visible: flatpakBackend.updatesModel.count > 0
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            text: qsTr("Application updates")
+            font: DTK.fontManager.t6
+            color: palette.windowText
+        }
+
+        ListView {
+            id: appList
+            Layout.fillWidth: true
+            Layout.fillHeight: flatpakBackend.updatesModel.count > 0
+                               && flatpakBackend.runtimeUpdatesModel.count === 0
+            Layout.preferredHeight: flatpakBackend.updatesModel.count > 0
+                                    ? 1 : 0
+            visible: flatpakBackend.updatesModel.count > 0
             clip: true
             spacing: 4
             model: flatpakBackend.updatesModel
             delegate: AppListItem {
-                width: list.width
+                width: appList.width
                 actionText: qsTr("Update")
                 onClicked: {
                     if (root.openDetail)
@@ -66,7 +80,38 @@ Item {
         }
 
         Label {
-            visible: list.count === 0 && !flatpakBackend.busy
+            visible: flatpakBackend.runtimeUpdatesModel.count > 0
+            Layout.fillWidth: true
+            text: qsTr("Runtime updates (%1)").arg(flatpakBackend.runtimeUpdatesModel.count)
+            font: DTK.fontManager.t6
+            color: palette.windowText
+        }
+
+        ListView {
+            id: runtimeList
+            Layout.fillWidth: true
+            Layout.fillHeight: flatpakBackend.runtimeUpdatesModel.count > 0
+            Layout.preferredHeight: flatpakBackend.runtimeUpdatesModel.count > 0
+                                    ? 1 : 0
+            visible: flatpakBackend.runtimeUpdatesModel.count > 0
+            clip: true
+            spacing: 4
+            model: flatpakBackend.runtimeUpdatesModel
+            delegate: AppListItem {
+                width: runtimeList.width
+                actionText: qsTr("Update")
+                onClicked: {
+                    if (root.openDetail)
+                        root.openDetail(model.item)
+                }
+                onActionClicked: flatpakBackend.updateApp(model.appId, model.branch, model.arch)
+            }
+        }
+
+        Label {
+            visible: flatpakBackend.updatesModel.count === 0
+                     && flatpakBackend.runtimeUpdatesModel.count === 0
+                     && !flatpakBackend.busy
             Layout.alignment: Qt.AlignHCenter
             text: qsTr("You're up to date.")
             color: palette.windowText
