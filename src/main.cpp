@@ -57,10 +57,10 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    // Load a translation catalog matching the system locale when available.
+    // Load the Brazilian Portuguese catalog when the system locale is pt_BR.
     QTranslator translator;
-    if (translator.load(QLocale(), QStringLiteral("dodo-store"), QStringLiteral("_"),
-                        QStringLiteral(":/i18n")))
+    if (QLocale().name() == QStringLiteral("pt_BR")
+        && translator.load(QStringLiteral(":/i18n/pt_BR.qm")))
         app.installTranslator(&translator);
     app.setOrganizationName("deepin");
     app.setApplicationName("dodo-store");
