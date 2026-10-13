@@ -12,6 +12,7 @@
 #endif
 
 #include <QDebug>
+#include <QProcess>
 #include <QCoreApplication>
 #include <QThread>
 #include <QMetaType>
@@ -1004,6 +1005,26 @@ void FlatpakWorker::uninstall(const QString &kind, const QString &name,
 
     QString err;
     const bool ok = d->runTransaction(transaction, &err);
+
+    // Only prune unused refs after a successful uninstall. This store manages
+    // the user's Flatpak installation, so pass --user explicitly.
+    if (ok) {
+        QProcess process;
+        process.start(QStringLiteral("flatpak"),
+                      {QStringLiteral("uninstall"), QStringLiteral("--user"),
+                       QStringLiteral("--unused"), QStringLiteral("-y")});
+        if (!process.waitForStarted(5000)) {
+            qWarning() << "flatpak: uninstall succeeded, but unused-ref cleanup could not start:"
+                       << process.errorString();
+        } else if (!process.waitForFinished(-1)) {
+            qWarning() << "flatpak: unused-ref cleanup did not finish:"
+                       << process.errorString();
+        } else if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
+            qWarning() << "flatpak: unused-ref cleanup failed:"
+                       << QString::fromLocal8Bit(process.readAllStandardError());
+        }
+    }
+
     d->setProgress(100, QString());
     Q_EMIT operationFinished(ref, ok, err);
 }
