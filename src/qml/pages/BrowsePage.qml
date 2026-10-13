@@ -120,7 +120,9 @@ Item {
                 filterText: root.searchText.trim()
                 appIdFilter: root.searchText.trim().length === 0
                              && flatpakBackend.currentRemote.toLowerCase() === "flathub"
-                             ? root.popularAppIds : []
+                             ? (flatpakBackend.popularAppIds.length > 0
+                                ? flatpakBackend.popularAppIds : root.popularAppIds)
+                             : []
             }
 
             delegate: AppCard {
