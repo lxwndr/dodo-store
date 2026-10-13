@@ -56,7 +56,7 @@ add_executable(dodo-store
 # Build and embed the available Qt Linguist catalogs.
 qt_add_translations(dodo-store
     TS_FILES
-        translations/dodo-store_pt_BR.ts
+        translations/pt_BR.ts
     SOURCES
         src/main.cpp
         src/qml/main.qml
