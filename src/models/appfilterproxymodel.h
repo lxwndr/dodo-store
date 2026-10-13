@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QSortFilterProxyModel>
+#include <QStringList>
 
 // Case-insensitive substring filter over the name/summary roles of
 // AppListModel. Exposed to QML as AppFilterProxyModel; DTK's QML-level
@@ -17,6 +18,7 @@ class AppFilterProxyModel : public QSortFilterProxyModel
     Q_PROPERTY(QString filterText READ filterText WRITE setFilterText NOTIFY filterTextChanged)
     Q_PROPERTY(bool hideRuntimes READ hideRuntimes WRITE setHideRuntimes NOTIFY hideRuntimesChanged)
     Q_PROPERTY(bool showRuntimesOnly READ showRuntimesOnly WRITE setShowRuntimesOnly NOTIFY showRuntimesOnlyChanged)
+    Q_PROPERTY(QStringList appIdFilter READ appIdFilter WRITE setAppIdFilter NOTIFY appIdFilterChanged)
 
 public:
     explicit AppFilterProxyModel(QObject *parent = nullptr);
@@ -31,17 +33,23 @@ public:
     bool showRuntimesOnly() const;
     void setShowRuntimesOnly(bool show);
 
+    QStringList appIdFilter() const;
+    void setAppIdFilter(const QStringList &appIds);
+
 Q_SIGNALS:
     void countChanged();
     void filterTextChanged();
     void hideRuntimesChanged();
     void showRuntimesOnlyChanged();
+    void appIdFilterChanged();
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
+    bool lessThan(const QModelIndex &sourceLeft, const QModelIndex &sourceRight) const override;
 
 private:
     QString m_filterText;
     bool m_hideRuntimes = false;
     bool m_showRuntimesOnly = false;
+    QStringList m_appIdFilter;
 };
