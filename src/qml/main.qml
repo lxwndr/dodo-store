@@ -227,10 +227,29 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     icon.name: modelData.icon
                     checked: root.pageIndex === modelData.page
-                    text: modelData.page === 3 && flatpakBackend.updatesModel.count > 0
-                          ? modelData.label + " (" + flatpakBackend.updatesModel.count + ")"
-                          : modelData.label
+                    text: modelData.label
                     onClicked: root.showPage(modelData.page)
+
+                    Rectangle {
+                        visible: modelData.page === 3 && flatpakBackend.updatesModel.count > 0
+                        width: Math.max(22, countLabel.implicitWidth + 12)
+                        height: 22
+                        radius: height / 2
+                        color: "#e53935"
+                        anchors.right: parent.right
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Text {
+                            id: countLabel
+                            anchors.centerIn: parent
+                            text: flatpakBackend.updatesModel.count > 99
+                                  ? "99+" : String(flatpakBackend.updatesModel.count)
+                            color: "#ffffff"
+                            font.pixelSize: 12
+                            font.bold: true
+                        }
+                    }
                 }
             }
 
