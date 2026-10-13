@@ -24,8 +24,8 @@ Rectangle {
         Rectangle {
             id: iconBadge
             Layout.alignment: Qt.AlignHCenter
-            width: 56
-            height: 56
+            width: 72
+            height: 72
             radius: 12
             color: palette.base
 
@@ -34,7 +34,7 @@ Rectangle {
                 anchors.margins: 8
                 source: model.icon
                 fillMode: Image.PreserveAspectFit
-                sourceSize { width: 40; height: 40 }
+                sourceSize { width: 56; height: 56 }
             }
         }
 
