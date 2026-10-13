@@ -9,8 +9,6 @@ AppFilterProxyModel::AppFilterProxyModel(QObject *parent)
     : QSortFilterProxyModel(parent)
 {
     setFilterCaseSensitivity(Qt::CaseInsensitive);
-    setDynamicSortFilter(true);
-    sort(0, Qt::AscendingOrder);
     connect(this, &QAbstractItemModel::rowsInserted, this, &AppFilterProxyModel::countChanged);
     connect(this, &QAbstractItemModel::rowsRemoved, this, &AppFilterProxyModel::countChanged);
     connect(this, &QAbstractItemModel::modelReset, this, &AppFilterProxyModel::countChanged);
@@ -32,7 +30,8 @@ void AppFilterProxyModel::setFilterText(const QString &text)
         return;
     m_filterText = text;
     setFilterFixedString(text);
-    sort(0, Qt::AscendingOrder);
+    if (!m_appIdFilter.isEmpty())
+        sort(0, Qt::AscendingOrder);
     Q_EMIT filterTextChanged();
 }
 
@@ -75,7 +74,10 @@ void AppFilterProxyModel::setAppIdFilter(const QStringList &appIds)
         return;
     m_appIdFilter = appIds;
     invalidateFilter();
-    sort(0, Qt::AscendingOrder);
+    if (m_appIdFilter.isEmpty())
+        sort(-1);
+    else
+        sort(0, Qt::AscendingOrder);
     Q_EMIT appIdFilterChanged();
 }
 
