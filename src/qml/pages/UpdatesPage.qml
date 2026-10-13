@@ -61,9 +61,7 @@ Item {
             id: appList
             Layout.fillWidth: true
             Layout.fillHeight: flatpakBackend.updatesModel.count > 0
-                               && flatpakBackend.runtimeUpdatesModel.count === 0
-            Layout.preferredHeight: flatpakBackend.updatesModel.count > 0
-                                    ? 1 : 0
+            Layout.preferredHeight: 1
             visible: flatpakBackend.updatesModel.count > 0
             clip: true
             spacing: 4
@@ -91,8 +89,7 @@ Item {
             id: runtimeList
             Layout.fillWidth: true
             Layout.fillHeight: flatpakBackend.runtimeUpdatesModel.count > 0
-            Layout.preferredHeight: flatpakBackend.runtimeUpdatesModel.count > 0
-                                    ? 1 : 0
+            Layout.preferredHeight: 1
             visible: flatpakBackend.runtimeUpdatesModel.count > 0
             clip: true
             spacing: 4
