@@ -16,6 +16,7 @@
 #include <QThread>
 #include <QMetaType>
 #include <QSet>
+#include <QHash>
 #include <QVariantMap>
 #include <QUrl>
 #include <QRegularExpression>
