@@ -266,7 +266,7 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Remotes"), icon: "network-server", page: 4 }
+                    { label: qsTr("Remotes"), icon: "network", page: 4 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
