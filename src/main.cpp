@@ -13,6 +13,8 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QStandardPaths>
+#include <QTranslator>
+#include <QLocale>
 #include <QStringList>
 
 #include <DLog>
@@ -54,6 +56,12 @@ QString singleInstanceSocketPath()
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    // Load a translation catalog matching the system locale when available.
+    QTranslator translator;
+    if (translator.load(QLocale(), QStringLiteral("dodo-store"), QStringLiteral("_"),
+                        QStringLiteral(":/i18n")))
+        app.installTranslator(&translator);
     app.setOrganizationName("deepin");
     app.setApplicationName("dodo-store");
     app.setApplicationVersion("0.1.0");
