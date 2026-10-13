@@ -21,6 +21,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS
     Qml
     Quick
     QuickControls2
+    LinguistTools
 )
 
 find_package(Dtk${DTK_NAME_SUFFIX}Core REQUIRED)
@@ -50,6 +51,24 @@ add_executable(dodo-store
     src/models/appfilterproxymodel.cpp
 
     src/qml.qrc
+)
+
+# Build and embed the available Qt Linguist catalogs.
+qt_add_translations(dodo-store
+    TS_FILES
+        translations/dodo-store_pt_BR.ts
+    SOURCES
+        src/main.cpp
+        src/qml/main.qml
+        src/qml/pages/HomePage.qml
+        src/qml/pages/BrowsePage.qml
+        src/qml/pages/InstalledPage.qml
+        src/qml/pages/UpdatesPage.qml
+        src/qml/pages/AppDetailPage.qml
+        src/qml/pages/RemotesPage.qml
+        src/qml/components/AppCard.qml
+        src/qml/components/AppListItem.qml
+    RESOURCE_PREFIX "/i18n"
 )
 
 target_link_libraries(dodo-store PRIVATE
