@@ -220,7 +220,7 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Installed"), icon: "package-x-generic", page: 2 },
+                    { label: qsTr("Installed"), icon: "package", page: 2 },
                     { label: qsTr("Updates"), icon: "software-update-available", page: 3 }
                 ]
                 delegate: ItemDelegate {
