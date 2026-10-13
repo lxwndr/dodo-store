@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
         app.installTranslator(&translator);
     app.setOrganizationName("deepin");
     app.setApplicationName("dodo-store");
-    app.setApplicationVersion("0.2.2");
+    app.setApplicationVersion("0.2.3");
 
     Dtk::Core::DLogManager::registerConsoleAppender();
 
