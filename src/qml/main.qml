@@ -196,7 +196,7 @@ ApplicationWindow {
             Repeater {
                 model: [
                     { label: qsTr("Home"), icon: "go-home" },
-                    { label: qsTr("Browse"), icon: "view-grid" }
+                    { label: qsTr("Explore"), icon: "compass" }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
