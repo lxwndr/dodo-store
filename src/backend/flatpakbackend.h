@@ -8,6 +8,7 @@
 #include <QString>
 #include <QStringList>
 #include <QVariantList>
+#include <QStringList>
 
 #include "../models/applistmodel.h"
 
@@ -15,6 +16,7 @@ class AppItem;
 class FlatpakWorker;
 class QThread;
 class AppStreamPoolBridge;
+class QNetworkAccessManager;
 
 // GUI-thread facade. Owns the worker thread, the exposed list models and the
 // AppStream metadata pool. QML talks to this object only; all flatpak calls
@@ -34,6 +36,7 @@ class FlatpakBackend : public QObject
     Q_PROPERTY(double progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(QString status READ status NOTIFY statusChanged)
     Q_PROPERTY(QString currentRemote READ currentRemote WRITE setCurrentRemote NOTIFY currentRemoteChanged)
+    Q_PROPERTY(QStringList popularAppIds READ popularAppIds NOTIFY popularAppIdsChanged)
 
 public:
     explicit FlatpakBackend(QObject *parent = nullptr);
@@ -49,6 +52,7 @@ public:
     QString status() const;
     QString currentRemote() const;
     void setCurrentRemote(const QString &remote);
+    QStringList popularAppIds() const;
 
     // Refresh the installed / updates models (async).
     Q_INVOKABLE void refreshInstalled();
@@ -108,6 +112,7 @@ Q_SIGNALS:
     void progressChanged();
     void statusChanged();
     void currentRemoteChanged();
+    void popularAppIdsChanged();
     void browseLoaded();
     void installedLoaded();
     void updatesLoaded();
@@ -144,6 +149,8 @@ private:
     QThread *m_thread = nullptr;
     FlatpakWorker *m_worker = nullptr;
     AppStreamPoolBridge *m_appstream = nullptr;
+    QNetworkAccessManager *m_networkManager = nullptr;
+    QStringList m_popularAppIds;
 
     AppListModel *m_installedModel = nullptr;
     AppListModel *m_browseModel = nullptr;
