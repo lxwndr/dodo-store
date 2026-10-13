@@ -98,8 +98,16 @@
   <context>
     <name>BrowsePage</name>
     <message>
-      <source>Browse flatpak apps</source>
-      <translation>Navegar pelos aplicativos Flatpak</translation>
+      <source>Popular on Flathub</source>
+      <translation>Populares no Flathub</translation>
+    </message>
+    <message>
+      <source>Explore applications</source>
+      <translation>Explorar aplicativos</translation>
+    </message>
+    <message>
+      <source>Search results</source>
+      <translation>Resultados da pesquisa</translation>
     </message>
     <message>
       <source>Source:</source>
