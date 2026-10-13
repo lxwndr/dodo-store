@@ -7,7 +7,7 @@ import QtQuick.Layouts 1.15
 import org.deepin.dtk 1.0
 
 // Application tile for the home / browse grids. `model` provides the standard
-// AppListModel roles (name/summary/icon/size/...).
+// AppListModel roles (name/icon/...).
 Rectangle {
     id: root
     property bool hovered: false
@@ -44,18 +44,6 @@ Rectangle {
             // Fall back to the app id when no display name is available.
             text: model.name || model.appId
             font: DTK.fontManager.t7
-            color: palette.windowText
-            elide: Text.ElideRight
-            horizontalAlignment: Text.AlignHCenter
-            maximumLineCount: 1
-        }
-
-        Text {
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignHCenter
-            text: model.summary || ""
-            visible: text.length > 0
-            font: DTK.fontManager.t9
             color: palette.windowText
             elide: Text.ElideRight
             horizontalAlignment: Text.AlignHCenter
