@@ -15,6 +15,7 @@ class AppFilterProxyModel : public QSortFilterProxyModel
     Q_OBJECT
     Q_PROPERTY(QString filterText READ filterText WRITE setFilterText NOTIFY filterTextChanged)
     Q_PROPERTY(bool hideRuntimes READ hideRuntimes WRITE setHideRuntimes NOTIFY hideRuntimesChanged)
+    Q_PROPERTY(bool showRuntimesOnly READ showRuntimesOnly WRITE setShowRuntimesOnly NOTIFY showRuntimesOnlyChanged)
 
 public:
     explicit AppFilterProxyModel(QObject *parent = nullptr);
@@ -25,9 +26,13 @@ public:
     bool hideRuntimes() const;
     void setHideRuntimes(bool hide);
 
+    bool showRuntimesOnly() const;
+    void setShowRuntimesOnly(bool show);
+
 Q_SIGNALS:
     void filterTextChanged();
     void hideRuntimesChanged();
+    void showRuntimesOnlyChanged();
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
@@ -35,4 +40,5 @@ protected:
 private:
     QString m_filterText;
     bool m_hideRuntimes = false;
+    bool m_showRuntimesOnly = false;
 };
