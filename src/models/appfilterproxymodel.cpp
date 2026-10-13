@@ -25,12 +25,32 @@ void AppFilterProxyModel::setFilterText(const QString &text)
     Q_EMIT filterTextChanged();
 }
 
+bool AppFilterProxyModel::hideRuntimes() const
+{
+    return m_hideRuntimes;
+}
+
+void AppFilterProxyModel::setHideRuntimes(bool hide)
+{
+    if (m_hideRuntimes == hide)
+        return;
+    m_hideRuntimes = hide;
+    invalidateFilter();
+    Q_EMIT hideRuntimesChanged();
+}
+
 bool AppFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
+    const QModelIndex idx = sourceModel()->index(sourceRow, 0, sourceParent);
+
+    // Keep runtimes in the backend model for dependency tracking and updates,
+    // but omit them from user-facing views that enable this option.
+    if (m_hideRuntimes && idx.data(AppListModel::IsRuntimeRole).toBool())
+        return false;
+
     if (filterRegularExpression().pattern().isEmpty())
         return true;
 
-    const QModelIndex idx = sourceModel()->index(sourceRow, 0, sourceParent);
     const QString name = idx.data(AppListModel::NameRole).toString();
     const QString summary = idx.data(AppListModel::SummaryRole).toString();
     return name.contains(filterRegularExpression())
