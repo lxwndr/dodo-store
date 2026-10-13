@@ -33,7 +33,7 @@ Item {
 
         Label {
             Layout.fillWidth: true
-            text: qsTr("%1 applications installed").arg(flatpakBackend.installedModel.count)
+            text: qsTr("%1 applications installed").arg(list.count)
             font: DTK.fontManager.t8
             color: palette.windowText
         }
@@ -47,6 +47,7 @@ Item {
             model: AppFilterProxyModel {
                 sourceModel: flatpakBackend.installedModel
                 filterText: searchField.text
+                hideRuntimes: true
             }
             delegate: AppListItem {
                 width: list.width
