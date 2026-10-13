@@ -39,13 +39,30 @@ void AppFilterProxyModel::setHideRuntimes(bool hide)
     Q_EMIT hideRuntimesChanged();
 }
 
+bool AppFilterProxyModel::showRuntimesOnly() const
+{
+    return m_showRuntimesOnly;
+}
+
+void AppFilterProxyModel::setShowRuntimesOnly(bool show)
+{
+    if (m_showRuntimesOnly == show)
+        return;
+    m_showRuntimesOnly = show;
+    invalidateFilter();
+    Q_EMIT showRuntimesOnlyChanged();
+}
+
 bool AppFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
     const QModelIndex idx = sourceModel()->index(sourceRow, 0, sourceParent);
+    const bool isRuntime = idx.data(AppListModel::IsRuntimeRole).toBool();
 
     // Keep runtimes in the backend model for dependency tracking and updates,
-    // but omit them from user-facing views that enable this option.
-    if (m_hideRuntimes && idx.data(AppListModel::IsRuntimeRole).toBool())
+    // but control which user-facing section displays them.
+    if (m_hideRuntimes && isRuntime)
+        return false;
+    if (m_showRuntimesOnly && !isRuntime)
         return false;
 
     if (filterRegularExpression().pattern().isEmpty())
