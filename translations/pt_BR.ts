@@ -60,8 +60,8 @@
       <translation>Página Inicial</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Navegar</translation>
+      <source>Explore</source>
+      <translation>Explorar</translation>
     </message>
     <message>
       <source>Library</source>
