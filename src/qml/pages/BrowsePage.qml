@@ -17,6 +17,34 @@ Item {
     // only receives the text.
     property string searchText: ""
 
+    // Curated set of popular Flathub applications shown before the user searches.
+    readonly property var popularAppIds: [
+        "org.mozilla.firefox",
+        "com.spotify.Client",
+        "com.valvesoftware.Steam",
+        "com.discordapp.Discord",
+        "com.visualstudio.code",
+        "org.libreoffice.LibreOffice",
+        "org.gimp.GIMP",
+        "org.videolan.VLC",
+        "com.obsproject.Studio",
+        "org.blender.Blender",
+        "org.inkscape.Inkscape",
+        "org.telegram.desktop",
+        "org.kde.kdenlive",
+        "org.audacityteam.Audacity",
+        "org.kde.krita",
+        "com.usebottles.bottles",
+        "net.lutris.Lutris",
+        "com.heroicgameslauncher.hgl",
+        "org.prismlauncher.PrismLauncher",
+        "com.github.tchx84.Flatseal",
+        "io.github.flattool.Warehouse",
+        "org.gnome.Boxes",
+        "org.gnome.Calculator",
+        "org.gnome.TextEditor"
+    ]
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 16
@@ -28,7 +56,11 @@ Item {
 
             Label {
                 Layout.fillWidth: true
-                text: qsTr("Browse flatpak apps")
+                text: root.searchText.trim().length > 0
+                      ? qsTr("Search results")
+                      : flatpakBackend.currentRemote.toLowerCase() === "flathub"
+                          ? qsTr("Popular on Flathub")
+                          : qsTr("Explore applications")
                 font: DTK.fontManager.t8
                 color: palette.windowText
             }
@@ -85,7 +117,10 @@ Item {
             model: AppFilterProxyModel {
                 id: filterModel
                 sourceModel: flatpakBackend.browseModel
-                filterText: root.searchText
+                filterText: root.searchText.trim()
+                appIdFilter: root.searchText.trim().length === 0
+                             && flatpakBackend.currentRemote.toLowerCase() === "flathub"
+                             ? root.popularAppIds : []
             }
 
             delegate: AppCard {
