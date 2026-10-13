@@ -11,7 +11,7 @@ import org.deepin.dtk 1.0
 //
 // Anchored instead of a RowLayout on purpose: the right-hand columns are
 // pinned to the right edge so version numbers and action buttons line up
-// across rows regardless of the name/summary lengths.
+// across rows regardless of the name lengths.
 Rectangle {
     id: root
     property bool hovered: false
@@ -41,33 +41,20 @@ Rectangle {
         }
     }
 
-    Column {
-        id: nameCol
+    Text {
+        id: nameText
         anchors.left: iconFrame.right
         anchors.leftMargin: 12
         anchors.right: verText.left
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 2
-        Text {
-            width: parent.width
-            // Fall back to the app id when AppStream metadata is missing
-            // (base apps / runtimes listed without a display name).
-            text: model.name || model.appId
-            font: DTK.fontManager.t7
-            color: palette.windowText
-            elide: Text.ElideRight
-            maximumLineCount: 1
-        }
-        Text {
-            width: parent.width
-            text: model.summary || ""
-            visible: text.length > 0
-            font: DTK.fontManager.t9
-            color: palette.windowText
-            elide: Text.ElideRight
-            maximumLineCount: 1
-        }
+        // Fall back to the app id when AppStream metadata is missing
+        // (base apps / runtimes listed without a display name).
+        text: model.name || model.appId
+        font: DTK.fontManager.t7
+        color: palette.windowText
+        elide: Text.ElideRight
+        maximumLineCount: 1
     }
 
     Text {
