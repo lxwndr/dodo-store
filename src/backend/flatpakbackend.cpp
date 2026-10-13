@@ -14,6 +14,13 @@
 #include <QMetaType>
 #include <QSettings>
 #include <QUrl>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
 
 Q_DECLARE_METATYPE(QList<AppItem *>)
 
@@ -21,6 +28,7 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
     : QObject(parent)
     , m_worker(new FlatpakWorker)
     , m_appstream(new AppStreamPoolBridge(this))
+    , m_networkManager(new QNetworkAccessManager(this))
     , m_installedModel(new AppListModel(this))
     , m_browseModel(new AppListModel(this))
     , m_updatesModel(new AppListModel(this))
@@ -49,6 +57,43 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
 
     connect(m_appstream, &AppStreamPoolBridge::loadFinished, this, &FlatpakBackend::onAppStreamLoaded);
     m_appstream->startLoading();
+
+    // Reuse the last successful collection immediately, then refresh it from
+    // Flathub's public API without blocking application startup.
+    QSettings settings;
+    m_popularAppIds = settings.value(QStringLiteral("flathub/popularAppIds")).toStringList();
+
+    QNetworkRequest request(QUrl(QStringLiteral(
+        "https://flathub.org/api/v2/collection/popular?page=1&per_page=40")));
+    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Dodo Store"));
+    QNetworkReply *reply = m_networkManager->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply] {
+        const QByteArray payload = reply->readAll();
+        if (reply->error() == QNetworkReply::NoError) {
+            QJsonParseError parseError;
+            const QJsonDocument document = QJsonDocument::fromJson(payload, &parseError);
+            const QJsonArray hits = document.object().value(QStringLiteral("hits")).toArray();
+            QStringList ids;
+            for (const QJsonValue &hit : hits) {
+                const QString appId = hit.toObject().value(QStringLiteral("app_id")).toString();
+                if (!appId.isEmpty() && !ids.contains(appId))
+                    ids.append(appId);
+            }
+            if (!ids.isEmpty()) {
+                m_popularAppIds = ids;
+                QSettings cache;
+                cache.setValue(QStringLiteral("flathub/popularAppIds"), ids);
+                Q_EMIT popularAppIdsChanged();
+            } else {
+                qWarning() << "Flathub popular collection returned no app IDs:"
+                           << parseError.errorString();
+            }
+        } else {
+            qWarning() << "Could not refresh Flathub popular collection:"
+                       << reply->errorString();
+        }
+        reply->deleteLater();
+    });
 }
 
 FlatpakBackend::~FlatpakBackend()
@@ -67,6 +112,7 @@ bool FlatpakBackend::busy() const { return m_busy; }
 double FlatpakBackend::progress() const { return m_progress; }
 QString FlatpakBackend::status() const { return m_status; }
 QString FlatpakBackend::currentRemote() const { return m_currentRemote; }
+QStringList FlatpakBackend::popularAppIds() const { return m_popularAppIds; }
 
 void FlatpakBackend::setCurrentRemote(const QString &remote)
 {
