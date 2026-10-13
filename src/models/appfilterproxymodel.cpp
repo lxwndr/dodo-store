@@ -9,6 +9,14 @@ AppFilterProxyModel::AppFilterProxyModel(QObject *parent)
     : QSortFilterProxyModel(parent)
 {
     setFilterCaseSensitivity(Qt::CaseInsensitive);
+    connect(this, &QAbstractItemModel::rowsInserted, this, &AppFilterProxyModel::countChanged);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, &AppFilterProxyModel::countChanged);
+    connect(this, &QAbstractItemModel::modelReset, this, &AppFilterProxyModel::countChanged);
+}
+
+int AppFilterProxyModel::count() const
+{
+    return rowCount();
 }
 
 QString AppFilterProxyModel::filterText() const
