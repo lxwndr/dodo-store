@@ -11,6 +11,7 @@
 #include <QThread>
 #include <QProcess>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDebug>
 #include <QMetaType>
 #include <QSettings>
@@ -64,6 +65,17 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
     QSettings settings;
     m_popularAppIds = settings.value(QStringLiteral("flathub/popularAppIds")).toStringList();
 
+    // Avoid an HTTP request on every launch. Cached popular apps are displayed
+    // immediately and the collection is refreshed at most once every 24 hours.
+    const qint64 lastPopularRefresh =
+        settings.value(QStringLiteral("flathub/popularLastRefresh"), 0).toLongLong();
+    constexpr qint64 kPopularCacheTtlSeconds = 24 * 60 * 60;
+    const qint64 now = QDateTime::currentSecsSinceEpoch();
+    if (!m_popularAppIds.isEmpty() && lastPopularRefresh > 0
+        && now - lastPopularRefresh < kPopularCacheTtlSeconds) {
+        return;
+    }
+
     QNetworkRequest request(QUrl(QStringLiteral(
         "https://flathub.org/api/v2/collection/popular?page=1&per_page=40")));
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Dodo Store"));
@@ -84,6 +96,8 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
                 m_popularAppIds = ids;
                 QSettings cache;
                 cache.setValue(QStringLiteral("flathub/popularAppIds"), ids);
+                cache.setValue(QStringLiteral("flathub/popularLastRefresh"),
+                               QDateTime::currentSecsSinceEpoch());
                 Q_EMIT popularAppIdsChanged();
             } else {
                 qWarning() << "Flathub popular collection returned no app IDs:"
