@@ -192,11 +192,11 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Explore"), icon: "compass" }
+                    { label: qsTr("Explore"), icon: "sidebar-explore.svg" }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
-                    icon.name: modelData.icon
+                    icon.source: "qrc:/qml/components/" + modelData.icon
                     icon.color: "#ffffff"
                     checked: root.pageIndex === index
                     palette.windowText: "#ffffff"
@@ -222,8 +222,8 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Installed"), icon: "package-x-generic", page: 1 },
-                    { label: qsTr("Updates"), icon: "view-refresh", page: 2 }
+                    { label: qsTr("Installed"), icon: "sidebar-installed.svg", page: 1 },
+                    { label: qsTr("Updates"), icon: "sidebar-updates.svg", page: 2 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
@@ -274,7 +274,7 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Remotes"), icon: "network-server", page: 3 }
+                    { label: qsTr("Remotes"), icon: "sidebar-remotes.svg", page: 3 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
