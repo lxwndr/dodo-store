@@ -39,31 +39,25 @@ ApplicationWindow {
         hideRuntimes: true
     }
 
-    // The page instances hosted by the right-hand StackView, one per tab.
-    property var pageStack: [null, null, null, null, null]
-
-    // Push a populated AppDetailPage onto the stack for the given AppItem.
     function openDetail(item) {
         var detail = mainStack.push("pages/AppDetailPage.qml", { appItem: item })
         detail.backClicked.connect(function() { mainStack.pop() })
     }
 
-    // Jump to the Browse tab and apply the search text typed in the title bar.
+    // Jump to Explore and apply the search text typed in the title bar.
     function applyGlobalSearch(text) {
         while (mainStack.depth > 1)
             mainStack.pop()
-        root.pageIndex = 1
+        root.pageIndex = 0
         browsePage.searchText = text
     }
 
     function showPage(index) {
-        // Popping any open detail pages when switching tabs.
         while (mainStack.depth > 1)
             mainStack.pop()
         root.pageIndex = index
     }
 
-    // Show a transient toast on this window.
     function showToast(text) {
         DTK.sendMessage(root, text)
     }
@@ -87,9 +81,8 @@ ApplicationWindow {
                 root.showToast(qsTr("Remote \"%1\" updated").arg(name))
             }
         }
-        // A "flatpak+https" web link resolved to an app: open its detail page.
         function onOpenAppRequested(appId, branch) {
-            root.showPage(1)
+            root.showPage(0)
             var item = flatpakBackend.findAppItem(appId, branch)
             if (item)
                 root.openDetail(item)
@@ -138,9 +131,6 @@ ApplicationWindow {
         }
     }
 
-    // Window background: blurred translucent sidebar column on the left
-    // ( StyledBehindWindowBlur falls back to a plain tinted fill when the
-    // compositor does not provide blur), flat fill for the content area.
     background: Rectangle {
         anchors.fill: parent
         color: "transparent"
@@ -184,7 +174,6 @@ ApplicationWindow {
     Item {
         anchors.fill: parent
 
-        // Sidebar navigation, grouped like deepin-music's "Library"/"Playlists".
         ColumnLayout {
             width: 220
             anchors.top: parent.top
@@ -203,7 +192,6 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Home"), icon: "go-home" },
                     { label: qsTr("Explore"), icon: "compass" }
                 ]
                 delegate: ItemDelegate {
@@ -217,7 +205,7 @@ ApplicationWindow {
                         radius: 8
                         color: parent.checked ? Qt.rgba(0.20, 0.45, 0.90, 0.30) : "transparent"
                     }
-                    onClicked: root.showPage(index)
+                    onClicked: root.showPage(0)
                 }
             }
 
@@ -234,8 +222,8 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Installed"), icon: "package", page: 2 },
-                    { label: qsTr("Updates"), icon: "refresh-cw", page: 3 }
+                    { label: qsTr("Installed"), icon: "package", page: 1 },
+                    { label: qsTr("Updates"), icon: "refresh-cw", page: 2 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
@@ -251,7 +239,7 @@ ApplicationWindow {
                     onClicked: root.showPage(modelData.page)
 
                     Rectangle {
-                        visible: modelData.page === 3 && applicationUpdatesModel.count > 0
+                        visible: modelData.page === 2 && applicationUpdatesModel.count > 0
                         width: Math.max(22, countLabel.implicitWidth + 12)
                         height: 22
                         radius: height / 2
@@ -286,14 +274,19 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Remotes"), icon: "network", page: 4 }
+                    { label: qsTr("Remotes"), icon: "network", page: 3 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
                     icon.name: modelData.icon
                     icon.color: "#ffffff"
                     checked: root.pageIndex === modelData.page
+                    palette.buttonText: "#ffffff"
                     text: modelData.label
+                    background: Rectangle {
+                        radius: 8
+                        color: parent.checked ? Qt.rgba(0.20, 0.45, 0.90, 0.30) : "transparent"
+                    }
                     onClicked: root.showPage(modelData.page)
                 }
             }
@@ -311,9 +304,6 @@ ApplicationWindow {
                 id: tabLayout
                 currentIndex: root.pageIndex
 
-                HomePage {
-                    openDetail: function(item) { root.openDetail(item) }
-                }
                 BrowsePage {
                     id: browsePage
                     openDetail: function(item) { root.openDetail(item) }
