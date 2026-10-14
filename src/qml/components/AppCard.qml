@@ -34,7 +34,14 @@ Rectangle {
                 anchors.margins: 8
                 source: model.icon
                 fillMode: Image.PreserveAspectFit
+                asynchronous: true
+                cache: true
                 sourceSize { width: 128; height: 128 }
+
+                onStatusChanged: {
+                    if (status === Image.Error)
+                        console.warn("Could not load app icon:", model.appId, source, "error:", status)
+                }
             }
         }
 
