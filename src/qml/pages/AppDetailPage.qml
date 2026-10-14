@@ -306,28 +306,16 @@ Item {
                         spacing: 8
 
                         // Primary action: Install, or Update when one is available.
+                        // Keep action buttons on the native DTK style so their
+                        // shape, colors, typography and interaction states follow
+                        // the active Deepin theme.
                         Button {
                             id: primaryButton
                             visible: !root.installed || root.updateAvailable
                             enabled: !flatpakBackend.busy
-                            implicitWidth: 112
-                            implicitHeight: 36
+                            width: 130
+                            height: 36
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
-                            contentItem: Text {
-                                text: primaryButton.text
-                                font: DTK.fontManager.t6
-                                color: "white"
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
-                            }
-                            background: Rectangle {
-                                radius: height / 2
-                                color: primaryButton.pressed
-                                       ? Qt.darker(palette.highlight, 1.15)
-                                       : palette.highlight
-                                opacity: primaryButton.enabled ? 1 : 0.5
-                            }
                             onClicked: {
                                 if (root.updateAvailable)
                                     flatpakBackend.updateApp(root.appAppId, root.appBranch, root.appArch)
@@ -340,8 +328,8 @@ Item {
                         Button {
                             visible: root.installed
                             enabled: !flatpakBackend.busy
-                            implicitWidth: 112
-                            implicitHeight: 36
+                            width: 130
+                            height: 36
                             text: qsTr("Open")
                             onClicked: flatpakBackend.openApp(root.appAppId,
                                                               root.appBranch, root.appArch)
