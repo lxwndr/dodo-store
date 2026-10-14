@@ -222,8 +222,8 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Installed"), icon: "package", page: 1 },
-                    { label: qsTr("Updates"), icon: "refresh-cw", page: 2 }
+                    { label: qsTr("Installed"), icon: "package-x-generic", page: 1 },
+                    { label: qsTr("Updates"), icon: "view-refresh", page: 2 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
@@ -274,7 +274,7 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Remotes"), icon: "network", page: 3 }
+                    { label: qsTr("Remotes"), icon: "network-server", page: 3 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
