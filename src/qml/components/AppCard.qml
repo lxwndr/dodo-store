@@ -6,11 +6,15 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import org.deepin.dtk 1.0
 
-// Application tile for the home / browse grids. `model` provides the standard
-// AppListModel roles (name/icon/...).
+// Application tile for the home / browse grids. The caller passes model roles
+// explicitly because delegate model roles are not reliably visible inside a
+// separate component's scope.
 Rectangle {
     id: root
     property bool hovered: false
+    property string appName: ""
+    property string appId: ""
+    property url appIcon
     signal clicked()
     color: hovered ? Qt.alpha(palette.highlight, 0.15) : "transparent"
     radius: 12
@@ -32,7 +36,7 @@ Rectangle {
             Image {
                 anchors.fill: parent
                 anchors.margins: 8
-                source: model.icon
+                source: root.appIcon
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 cache: true
@@ -40,7 +44,7 @@ Rectangle {
 
                 onStatusChanged: {
                     if (status === Image.Error)
-                        console.warn("Could not load app icon:", model.appId, source, "error:", status)
+                        console.warn("Could not load app icon:", root.appId, source, "error:", status)
                 }
             }
         }
@@ -49,7 +53,7 @@ Rectangle {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter
             // Fall back to the app id when no display name is available.
-            text: model.name || model.appId
+            text: root.appName || root.appId
             font: DTK.fontManager.t7
             color: palette.windowText
             elide: Text.ElideRight
