@@ -199,7 +199,7 @@ ApplicationWindow {
                     icon.name: modelData.icon
                     icon.color: "#ffffff"
                     checked: root.pageIndex === index
-                    palette.buttonText: "#ffffff"
+                    palette.windowText: "#ffffff"
                     text: modelData.label
                     background: Rectangle {
                         radius: 8
@@ -230,7 +230,7 @@ ApplicationWindow {
                     icon.name: modelData.icon
                     icon.color: "#ffffff"
                     checked: root.pageIndex === modelData.page
-                    palette.buttonText: "#ffffff"
+                    palette.windowText: "#ffffff"
                     text: modelData.label
                     background: Rectangle {
                         radius: 8
@@ -281,7 +281,7 @@ ApplicationWindow {
                     icon.name: modelData.icon
                     icon.color: "#ffffff"
                     checked: root.pageIndex === modelData.page
-                    palette.buttonText: "#ffffff"
+                    palette.windowText: "#ffffff"
                     text: modelData.label
                     background: Rectangle {
                         radius: 8
