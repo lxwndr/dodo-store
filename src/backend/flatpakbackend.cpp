@@ -169,6 +169,16 @@ void FlatpakBackend::installDeepinGtkThemesIfNeeded()
 
 void FlatpakBackend::refreshBrowse()
 {
+    // Keep the current model when returning to Explore or clearing a search.
+    // A remote catalog is loaded once per session unless the user changes
+    // source; Flatpak itself can refresh its summary independently.
+    if (!m_currentRemote.isEmpty()
+        && m_loadedBrowseRemote == m_currentRemote
+        && m_browseModel->count() > 0) {
+        setBusy(false);
+        return;
+    }
+
     m_loadingAllRemotes = false;
     m_pendingBrowseRemotes.clear();
     m_allRemoteBrowseItems.clear();
@@ -181,6 +191,8 @@ void FlatpakBackend::refreshBrowse()
 
 void FlatpakBackend::refreshBrowseAllRemotes()
 {
+    // The all-remotes search model is not the single-remote catalog.
+    m_loadedBrowseRemote.clear();
     m_pendingBrowseRemotes.clear();
     m_allRemoteBrowseItems.clear();
     for (const QVariant &entry : m_remotesInfo) {
@@ -475,7 +487,7 @@ void FlatpakBackend::onRemoteRefsReady(const QString &remote, QList<AppItem *> i
         setBusy(false);
         Q_EMIT browseLoaded();
     } else {
-        Q_UNUSED(remote)
+        m_loadedBrowseRemote = remote;
         m_browseModel->clear();
         m_browseModel->appendItems(items);
         enrichBatch(m_browseModel, 0);
