@@ -209,6 +209,7 @@ ApplicationWindow {
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
                     icon.name: modelData.icon
+                    icon.color: "#ffffff"
                     checked: root.pageIndex === index
                     text: modelData.label
                     onClicked: root.showPage(index)
@@ -234,6 +235,7 @@ ApplicationWindow {
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
                     icon.name: modelData.icon
+                    icon.color: "#ffffff"
                     checked: root.pageIndex === modelData.page
                     text: modelData.label
                     onClicked: root.showPage(modelData.page)
@@ -279,6 +281,7 @@ ApplicationWindow {
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
                     icon.name: modelData.icon
+                    icon.color: "#ffffff"
                     checked: root.pageIndex === modelData.page
                     text: modelData.label
                     onClicked: root.showPage(modelData.page)
