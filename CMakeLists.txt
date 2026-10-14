@@ -6,7 +6,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 project(dodo-store
-    VERSION 0.2.6
+    VERSION 0.2.7
     DESCRIPTION "A Flatpak GUI store built with Qt6, CMake, QML and DTK"
     LANGUAGES CXX
 )
