@@ -154,11 +154,40 @@ void FlatpakBackend::installDeepinGtkThemesIfNeeded()
 
 void FlatpakBackend::refreshBrowse()
 {
+    m_loadingAllRemotes = false;
+    m_pendingBrowseRemotes.clear();
+    m_allRemoteBrowseItems.clear();
     if (m_currentRemote.isEmpty())
         return;
     setBusy(true);
     QMetaObject::invokeMethod(m_worker, "loadRemote", Qt::QueuedConnection,
                               Q_ARG(QString, m_currentRemote));
+}
+
+void FlatpakBackend::refreshBrowseAllRemotes()
+{
+    m_pendingBrowseRemotes.clear();
+    m_allRemoteBrowseItems.clear();
+    for (const QVariant &entry : m_remotesInfo) {
+        const QVariantMap remote = entry.toMap();
+        const QString name = remote.value(QStringLiteral("name")).toString();
+        if (name.isEmpty()
+            || remote.value(QStringLiteral("disabled")).toBool()
+            || remote.value(QStringLiteral("noEnumerate")).toBool())
+            continue;
+        m_pendingBrowseRemotes.append(name);
+    }
+
+    m_loadingAllRemotes = !m_pendingBrowseRemotes.isEmpty();
+    if (!m_loadingAllRemotes) {
+        refreshBrowse();
+        return;
+    }
+
+    setBusy(true);
+    const QString nextRemote = m_pendingBrowseRemotes.takeFirst();
+    QMetaObject::invokeMethod(m_worker, "loadRemote", Qt::QueuedConnection,
+                              Q_ARG(QString, nextRemote));
 }
 
 void FlatpakBackend::refreshMetadata()
@@ -397,14 +426,32 @@ void FlatpakBackend::onRemoteOperationFinished(bool success, const QString &acti
 
 void FlatpakBackend::onRemoteRefsReady(const QString &remote, QList<AppItem *> items)
 {
-    Q_UNUSED(remote)
-    m_browseModel->clear();
-    m_browseModel->appendItems(items);
-    enrichBatch(m_browseModel, 0);
-    setBusy(false);
-    Q_EMIT browseLoaded();
+    if (m_loadingAllRemotes) {
+        m_allRemoteBrowseItems.append(items);
+        if (!m_pendingBrowseRemotes.isEmpty()) {
+            const QString nextRemote = m_pendingBrowseRemotes.takeFirst();
+            QMetaObject::invokeMethod(m_worker, "loadRemote", Qt::QueuedConnection,
+                                      Q_ARG(QString, nextRemote));
+            return;
+        }
 
-    // A "flatpak+https" link is waiting for this remote's app list: now that
+        m_loadingAllRemotes = false;
+        m_browseModel->clear();
+        m_browseModel->appendItems(m_allRemoteBrowseItems);
+        m_allRemoteBrowseItems.clear();
+        enrichBatch(m_browseModel, 0);
+        setBusy(false);
+        Q_EMIT browseLoaded();
+    } else {
+        Q_UNUSED(remote)
+        m_browseModel->clear();
+        m_browseModel->appendItems(items);
+        enrichBatch(m_browseModel, 0);
+        setBusy(false);
+        Q_EMIT browseLoaded();
+    }
+
+    // A "flatpak+https" link is waiting for its remote's app list: now that
     // the catalog is populated, hand the referenced app over to the UI.
     if (!m_pendingOpenAppId.isEmpty()) {
         const QString appId = m_pendingOpenAppId;
