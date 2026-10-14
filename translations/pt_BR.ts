@@ -137,6 +137,10 @@
       <translation>%1 aplicativos instalados</translation>
     </message>
     <message>
+      <source>Open</source>
+      <translation>Abrir</translation>
+    </message>
+    <message>
       <source>Uninstall</source>
       <translation>Desinstalar</translation>
     </message>
