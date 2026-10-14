@@ -10,5 +10,9 @@
         <file>qml/components/AppCard.qml</file>
         <file>qml/components/AppListItem.qml</file>
         <file>qml/components/puzzle-piece.svg</file>
+        <file>qml/components/sidebar-explore.svg</file>
+        <file>qml/components/sidebar-installed.svg</file>
+        <file>qml/components/sidebar-updates.svg</file>
+        <file>qml/components/sidebar-remotes.svg</file>
     </qresource>
 </RCC>
