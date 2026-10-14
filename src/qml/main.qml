@@ -32,6 +32,18 @@ ApplicationWindow {
 
     property int pageIndex: 0
 
+    // Clicking anywhere outside the search field should dismiss its focus
+    // without intercepting the click meant for the underlying control.
+    TapHandler {
+        onTapped: function(eventPoint) {
+            var position = globalSearch.mapFromItem(root,
+                                                     eventPoint.position.x,
+                                                     eventPoint.position.y)
+            if (!globalSearch.contains(position))
+                globalSearch.focus = false
+        }
+    }
+
     // Count only application updates; runtime updates remain listed separately.
     AppFilterProxyModel {
         id: applicationUpdatesModel
@@ -112,6 +124,7 @@ ApplicationWindow {
             Item { Layout.fillWidth: true }
 
             SearchEdit {
+                id: globalSearch
                 Layout.preferredWidth: 320
                 Layout.alignment: Qt.AlignCenter
                 placeholder: qsTr("Search Flatpak apps")
