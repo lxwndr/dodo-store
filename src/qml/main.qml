@@ -211,7 +211,12 @@ ApplicationWindow {
                     icon.name: modelData.icon
                     icon.color: "#ffffff"
                     checked: root.pageIndex === index
+                    palette.buttonText: "#ffffff"
                     text: modelData.label
+                    background: Rectangle {
+                        radius: 8
+                        color: parent.checked ? Qt.rgba(0.20, 0.45, 0.90, 0.30) : "transparent"
+                    }
                     onClicked: root.showPage(index)
                 }
             }
@@ -237,7 +242,12 @@ ApplicationWindow {
                     icon.name: modelData.icon
                     icon.color: "#ffffff"
                     checked: root.pageIndex === modelData.page
+                    palette.buttonText: "#ffffff"
                     text: modelData.label
+                    background: Rectangle {
+                        radius: 8
+                        color: parent.checked ? Qt.rgba(0.20, 0.45, 0.90, 0.30) : "transparent"
+                    }
                     onClicked: root.showPage(modelData.page)
 
                     Rectangle {
