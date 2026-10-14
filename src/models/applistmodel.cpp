@@ -84,9 +84,25 @@ QHash<int, QByteArray> AppListModel::roleNames() const
 
 void AppListModel::appendItem(AppItem *item)
 {
-    beginInsertRows(QModelIndex(), m_items.size(), m_items.size());
+    const int row = m_items.size();
+    beginInsertRows(QModelIndex(), row, row);
     m_items.append(item);
     endInsertRows();
+
+    connect(item, &AppItem::nameChanged, this, [this, item] {
+        const int row = m_items.indexOf(item);
+        if (row >= 0) {
+            const QModelIndex idx = index(row, 0);
+            Q_EMIT dataChanged(idx, idx, {NameRole});
+        }
+    });
+    connect(item, &AppItem::iconChanged, this, [this, item] {
+        const int row = m_items.indexOf(item);
+        if (row >= 0) {
+            const QModelIndex idx = index(row, 0);
+            Q_EMIT dataChanged(idx, idx, {IconRole});
+        }
+    });
 }
 
 void AppListModel::appendItems(const QList<AppItem *> &items)
@@ -95,9 +111,27 @@ void AppListModel::appendItems(const QList<AppItem *> &items)
         return;
     // One begin/end pair for the whole batch: emitting per-row signals for a
     // 4000-row catalog floods the proxies and views on the GUI thread.
-    beginInsertRows(QModelIndex(), m_items.size(), m_items.size() + items.size() - 1);
+    const int first = m_items.size();
+    beginInsertRows(QModelIndex(), first, first + items.size() - 1);
     m_items.append(items);
     endInsertRows();
+
+    for (AppItem *item : items) {
+        connect(item, &AppItem::nameChanged, this, [this, item] {
+            const int row = m_items.indexOf(item);
+            if (row >= 0) {
+                const QModelIndex idx = index(row, 0);
+                Q_EMIT dataChanged(idx, idx, {NameRole});
+            }
+        });
+        connect(item, &AppItem::iconChanged, this, [this, item] {
+            const int row = m_items.indexOf(item);
+            if (row >= 0) {
+                const QModelIndex idx = index(row, 0);
+                Q_EMIT dataChanged(idx, idx, {IconRole});
+            }
+        });
+    }
 }
 
 void AppListModel::clear()
