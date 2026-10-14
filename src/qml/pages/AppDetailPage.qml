@@ -342,9 +342,9 @@ Item {
                             enabled: !flatpakBackend.busy
                             implicitWidth: 112
                             implicitHeight: 36
-                            text: qsTr("Uninstall")
-                            onClicked: flatpakBackend.uninstallApp(root.appAppId,
-                                                                   root.appBranch, root.appArch)
+                            text: qsTr("Open")
+                            onClicked: flatpakBackend.openApp(root.appAppId,
+                                                              root.appBranch, root.appArch)
                         }
                     }
 
