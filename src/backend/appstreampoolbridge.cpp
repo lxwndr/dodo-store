@@ -217,15 +217,25 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
             break;
     }
 
-    // Icon: prefer the 128px cached/remote icon.
+    // Choose the highest-resolution URL icon instead of trusting AppStream's
+    // ordering (which may put a small thumbnail before a 128px icon).
     const QList<AppStream::Icon> icons = comp.icons();
+    QUrl bestIconUrl;
+    quint64 bestIconArea = 0;
     for (const auto &icon : icons) {
         const QUrl url = icon.url();
-        if (url.isValid()) {
-            item->setIcon(url);
-            changed = true;
-            break;
+        if (!url.isValid() || url.isEmpty())
+            continue;
+
+        const quint64 area = quint64(icon.width()) * quint64(icon.height());
+        if (bestIconUrl.isEmpty() || area > bestIconArea) {
+            bestIconUrl = url;
+            bestIconArea = area;
         }
+    }
+    if (!bestIconUrl.isEmpty()) {
+        item->setIcon(bestIconUrl);
+        changed = true;
     }
 
     // Screenshots: keep one URL per screenshot, preferring the full-size
