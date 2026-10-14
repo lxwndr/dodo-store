@@ -9,6 +9,7 @@ import QtQuick.Controls 2.15
 import org.deepin.dtk 1.0
 import org.deepin.dtk 1.0 as D
 import org.deepin.dtk.style 1.0 as DS
+import dodo.store 1.0
 import "pages"
 import "components"
 
@@ -30,6 +31,13 @@ ApplicationWindow {
     color: "transparent"
 
     property int pageIndex: 0
+
+    // Count only application updates; runtime updates remain listed separately.
+    AppFilterProxyModel {
+        id: applicationUpdatesModel
+        sourceModel: flatpakBackend.updatesModel
+        hideRuntimes: true
+    }
 
     // The page instances hosted by the right-hand StackView, one per tab.
     property var pageStack: [null, null, null, null, null]
@@ -231,7 +239,7 @@ ApplicationWindow {
                     onClicked: root.showPage(modelData.page)
 
                     Rectangle {
-                        visible: modelData.page === 3 && flatpakBackend.updatesModel.count > 0
+                        visible: modelData.page === 3 && applicationUpdatesModel.count > 0
                         width: Math.max(22, countLabel.implicitWidth + 12)
                         height: 22
                         radius: height / 2
@@ -243,8 +251,8 @@ ApplicationWindow {
                         Text {
                             id: countLabel
                             anchors.centerIn: parent
-                            text: flatpakBackend.updatesModel.count > 99
-                                  ? "99+" : String(flatpakBackend.updatesModel.count)
+                            text: applicationUpdatesModel.count > 99
+                                  ? "99+" : String(applicationUpdatesModel.count)
                             color: "#ffffff"
                             font.pixelSize: 12
                             font.bold: true
