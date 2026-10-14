@@ -60,6 +60,8 @@ public:
     Q_INVOKABLE void installDeepinGtkThemesIfNeeded();
     // Populate the browse model for the current remote (async).
     Q_INVOKABLE void refreshBrowse();
+    // Load application catalogs from every enabled, enumerable remote for search.
+    Q_INVOKABLE void refreshBrowseAllRemotes();
     Q_INVOKABLE void search(const QString &term);
 
     // Operations. Accepts appId, remote, branch, arch; resolves into the worker.
@@ -151,6 +153,9 @@ private:
     AppStreamPoolBridge *m_appstream = nullptr;
     QNetworkAccessManager *m_networkManager = nullptr;
     QStringList m_popularAppIds;
+    QStringList m_pendingBrowseRemotes;
+    QList<AppItem *> m_allRemoteBrowseItems;
+    bool m_loadingAllRemotes = false;
 
     AppListModel *m_installedModel = nullptr;
     AppListModel *m_browseModel = nullptr;
