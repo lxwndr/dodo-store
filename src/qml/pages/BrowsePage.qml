@@ -16,6 +16,18 @@ Item {
     // The search field lives in the window title bar (DTK style); the page
     // only receives the text.
     property string searchText: ""
+    property bool searchingAcrossRemotes: false
+
+    onSearchTextChanged: {
+        var hasSearch = searchText.trim().length > 0
+        if (hasSearch && !searchingAcrossRemotes) {
+            searchingAcrossRemotes = true
+            flatpakBackend.refreshBrowseAllRemotes()
+        } else if (!hasSearch && searchingAcrossRemotes) {
+            searchingAcrossRemotes = false
+            flatpakBackend.refreshBrowse()
+        }
+    }
 
     // Curated set of popular Flathub applications shown before the user searches.
     readonly property var popularAppIds: [
@@ -50,53 +62,13 @@ Item {
         anchors.margins: 16
         spacing: 12
 
-        RowLayout {
+        Label {
             Layout.fillWidth: true
-            spacing: 8
-
-            Label {
-                Layout.fillWidth: true
-                text: root.searchText.trim().length > 0
-                      ? qsTr("Search results")
-                      : flatpakBackend.currentRemote.toLowerCase() === "flathub"
-                          ? qsTr("Popular on Flathub")
-                          : qsTr("Explore applications")
-                font: DTK.fontManager.t8
-                color: palette.windowText
-            }
-
-            Label {
-                text: qsTr("Source:")
-                color: palette.windowText
-                opacity: 0.7
-            }
-
-            ComboBox {
-                id: remoteBox
-                Layout.preferredWidth: 200
-                model: flatpakBackend.remotes
-
-                // Keep the selection in sync when the remote list or the current
-                // remote changes without breaking the user's own choice.
-                function syncIndex() {
-                    var i = flatpakBackend.remotes.indexOf(flatpakBackend.currentRemote)
-                    if (i >= 0 && i !== currentIndex)
-                        currentIndex = i
-                }
-
-                Component.onCompleted: syncIndex()
-
-                Connections {
-                    target: flatpakBackend
-                    function onRemotesChanged() { remoteBox.syncIndex() }
-                    function onCurrentRemoteChanged() { remoteBox.syncIndex() }
-                }
-
-                onActivated: {
-                    flatpakBackend.currentRemote = flatpakBackend.remotes[index]
-                    flatpakBackend.refreshBrowse()
-                }
-            }
+            text: root.searchText.trim().length > 0
+                  ? qsTr("Search results")
+                  : qsTr("Popular on Flathub")
+            font: DTK.fontManager.t8
+            color: palette.windowText
         }
 
         BusyIndicator {
@@ -119,7 +91,6 @@ Item {
                 sourceModel: flatpakBackend.browseModel
                 filterText: root.searchText.trim()
                 appIdFilter: root.searchText.trim().length === 0
-                             && flatpakBackend.currentRemote.toLowerCase() === "flathub"
                              ? (flatpakBackend.popularAppIds.length > 0
                                 ? flatpakBackend.popularAppIds : root.popularAppIds)
                              : []
