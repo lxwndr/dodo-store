@@ -240,7 +240,7 @@ ApplicationWindow {
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
-                    icon.name: modelData.icon
+                    icon.source: "qrc:/qml/components/" + modelData.icon
                     icon.color: "#ffffff"
                     checked: root.pageIndex === modelData.page
                     palette.windowText: "#ffffff"
@@ -291,7 +291,7 @@ ApplicationWindow {
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
-                    icon.name: modelData.icon
+                    icon.source: "qrc:/qml/components/" + modelData.icon
                     icon.color: "#ffffff"
                     checked: root.pageIndex === modelData.page
                     palette.windowText: "#ffffff"
