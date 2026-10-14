@@ -71,6 +71,8 @@ public:
                                   const QString &arch);
     Q_INVOKABLE void updateApp(const QString &appId, const QString &branch,
                                const QString &arch);
+    Q_INVOKABLE void openApp(const QString &appId, const QString &branch,
+                             const QString &arch);
     Q_INVOKABLE void updateAll();
     Q_INVOKABLE void cancelOperation();
 
