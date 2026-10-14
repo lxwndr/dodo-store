@@ -9,6 +9,7 @@
 #include "../models/applistmodel.h"
 
 #include <QThread>
+#include <QProcess>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QMetaType>
@@ -245,6 +246,23 @@ void FlatpakBackend::updateApp(const QString &appId, const QString &branch,
     QMetaObject::invokeMethod(m_worker, "updateApp", Qt::QueuedConnection,
                               Q_ARG(QString, QStringLiteral("app")), Q_ARG(QString, appId),
                               Q_ARG(QString, arch), Q_ARG(QString, branch));
+}
+
+void FlatpakBackend::openApp(const QString &appId, const QString &branch,
+                            const QString &arch)
+{
+    if (appId.isEmpty())
+        return;
+
+    QStringList arguments{QStringLiteral("run")};
+    if (!branch.isEmpty())
+        arguments << QStringLiteral("--branch=%1").arg(branch);
+    if (!arch.isEmpty())
+        arguments << QStringLiteral("--arch=%1").arg(arch);
+    arguments << appId;
+
+    if (!QProcess::startDetached(QStringLiteral("flatpak"), arguments))
+        qWarning() << "Could not launch Flatpak application:" << appId;
 }
 
 void FlatpakBackend::updateAll()
