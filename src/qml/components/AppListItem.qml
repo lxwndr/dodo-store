@@ -37,7 +37,7 @@ Rectangle {
             anchors.margins: 6
             source: model.icon
             fillMode: Image.PreserveAspectFit
-            sourceSize { width: 36; height: 36 }
+            sourceSize { width: 96; height: 96 }
         }
     }
 
