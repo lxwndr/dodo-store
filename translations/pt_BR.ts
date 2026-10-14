@@ -13,7 +13,7 @@
     <message><source>Application not found in the selected source: %1</source><translation>Aplicativo não encontrado na fonte selecionada: %1</translation></message>
     <message><source>Cannot open link: %1</source><translation>Não foi possível abrir o link: %1</translation></message>
     <message><source>Search applications</source><translation>Pesquisar aplicativos</translation></message>
-    <message><source>Search Flatpak apps</source><translation>Pesquisar flatpak</translation></message>
+    <message><source>Search Flatpak apps</source><translation>Pesquisar</translation></message>
     <message><source>A Flatpak graphical application store built with Qt6, CMake, QML and DTK.</source><translation>Uma loja gráfica de aplicativos Flatpak desenvolvida com Qt6, CMake, QML e DTK.</translation></message>
     <message><source>Released under LGPL-3.0-or-later.</source><translation>Disponibilizado sob a licença LGPL-3.0 ou posterior.</translation></message>
     <message><source>Store</source><translation>Loja</translation></message>
