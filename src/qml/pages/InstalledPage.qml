@@ -17,20 +17,6 @@ Item {
         anchors.margins: 16
         spacing: 12
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 8
-            LineEdit {
-                id: searchField
-                Layout.fillWidth: true
-                placeholderText: qsTr("Search installed applications...")
-            }
-            Button {
-                text: qsTr("Refresh")
-                onClicked: flatpakBackend.refreshInstalled()
-            }
-        }
-
         Label {
             Layout.fillWidth: true
             text: qsTr("%1 applications installed").arg(list.count)
@@ -46,7 +32,7 @@ Item {
             spacing: 4
             model: AppFilterProxyModel {
                 sourceModel: flatpakBackend.installedModel
-                filterText: searchField.text
+                filterText: ""
                 hideRuntimes: true
             }
             delegate: AppListItem {
