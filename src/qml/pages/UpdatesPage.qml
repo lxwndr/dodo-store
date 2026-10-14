@@ -110,6 +110,7 @@ Item {
             model: runtimeUpdatesModel
             delegate: AppListItem {
                 width: runtimeList.width
+                runtimeItem: true
                 actionText: qsTr("Update")
                 onClicked: {
                     if (root.openDetail)
