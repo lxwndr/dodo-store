@@ -100,6 +100,9 @@ Item {
             delegate: AppCard {
                 width: grid.cellWidth - 16
                 height: grid.cellHeight - 16
+                appName: model.name
+                appId: model.appId
+                appIcon: model.icon
                 onClicked: {
                     if (root.openDetail)
                         root.openDetail(model.item)
