@@ -11,6 +11,16 @@ import "../components"
 Item {
     id: root
     property var openDetail: null
+    property bool componentReady: false
+
+    Component.onCompleted: componentReady = true
+
+    // The installed/update lists are loaded at startup. Refresh again whenever
+    // the user opens this page, without requiring a manual check button.
+    onVisibleChanged: {
+        if (visible && componentReady && !flatpakBackend.busy)
+            flatpakBackend.refreshInstalled()
+    }
 
     AppFilterProxyModel {
         id: appUpdatesModel
@@ -43,10 +53,6 @@ Item {
                 text: qsTr("Update All")
                 enabled: flatpakBackend.updatesModel.count > 0 && !flatpakBackend.busy
                 onClicked: flatpakBackend.updateAll()
-            }
-            Button {
-                text: qsTr("Check for updates")
-                onClicked: flatpakBackend.refreshInstalled()
             }
             Button {
                 text: qsTr("Cancel")
