@@ -15,6 +15,7 @@ import org.deepin.dtk 1.0
 Rectangle {
     id: root
     property bool hovered: false
+    property bool runtimeItem: false
     property string actionText: ""
     signal clicked()
     signal actionClicked()
@@ -35,7 +36,7 @@ Rectangle {
         Image {
             anchors.fill: parent
             anchors.margins: 6
-            source: model.icon
+            source: root.runtimeItem ? "puzzle-piece.svg" : model.icon
             fillMode: Image.PreserveAspectFit
             sourceSize { width: 96; height: 96 }
         }
