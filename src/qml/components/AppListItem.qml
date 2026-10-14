@@ -33,10 +33,20 @@ Rectangle {
         height: 48
         radius: 8
         color: palette.base
+        DciIcon {
+            anchors.fill: parent
+            anchors.margins: 6
+            visible: root.runtimeItem
+            name: "package-x-generic"
+            fallbackToQIcon: true
+            sourceSize { width: 36; height: 36 }
+        }
+
         Image {
             anchors.fill: parent
             anchors.margins: 6
-            source: root.runtimeItem ? "puzzle-piece.svg" : model.icon
+            visible: !root.runtimeItem
+            source: model.icon
             fillMode: Image.PreserveAspectFit
             sourceSize { width: 96; height: 96 }
         }
