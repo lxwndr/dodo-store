@@ -114,7 +114,7 @@ ApplicationWindow {
             SearchEdit {
                 Layout.preferredWidth: 320
                 Layout.alignment: Qt.AlignCenter
-                placeholder: qsTr("Pesquisar flatpak")
+                placeholder: qsTr("Search Flatpak apps")
                 onTextChanged: root.applyGlobalSearch(text)
             }
 
