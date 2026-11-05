@@ -95,8 +95,8 @@ Rectangle {
         height: 36
         text: root.actionText
         visible: root.actionText.length > 0
-        palette.button: actionBtn.text === qsTr("Update") ? "#2ca34a" : palette.button
-        palette.buttonText: actionBtn.text === qsTr("Update") ? "white" : palette.buttonText
+        palette.button: actionBtn.text === qsTr("Update") ? "#2ca34a" : root.palette.button
+        palette.buttonText: actionBtn.text === qsTr("Update") ? "white" : root.palette.buttonText
         onClicked: root.actionClicked()
     }
 
