@@ -40,8 +40,17 @@ Item {
             }
 
             Button {
+                id: addRemoteButton
                 text: qsTr("Add remote")
                 onClicked: addDialog.open()
+                background: Rectangle {
+                    radius: height / 2
+                    color: addRemoteButton.down ? Qt.darker(addRemoteButton.palette.button, 1.15)
+                                                : (addRemoteButton.hovered ? Qt.lighter(addRemoteButton.palette.button, 1.05)
+                                                                           : addRemoteButton.palette.button)
+                    border.color: Qt.darker(addRemoteButton.palette.button, 1.08)
+                    opacity: addRemoteButton.enabled ? 1 : 0.5
+                }
             }
         }
 
@@ -138,16 +147,34 @@ Item {
                     }
 
                     Button {
+                        id: editRemoteButton
                         text: qsTr("Edit")
                         onClicked: editDialog.load(modelData)
+                        background: Rectangle {
+                            radius: height / 2
+                            color: editRemoteButton.down ? Qt.darker(editRemoteButton.palette.button, 1.15)
+                                                         : (editRemoteButton.hovered ? Qt.lighter(editRemoteButton.palette.button, 1.05)
+                                                                                     : editRemoteButton.palette.button)
+                            border.color: Qt.darker(editRemoteButton.palette.button, 1.08)
+                            opacity: editRemoteButton.enabled ? 1 : 0.5
+                        }
                     }
 
                     Button {
+                        id: removeRemoteButton
                         text: qsTr("Remove")
                         onClicked: {
                             removeDialog.remoteName = modelData.name
                             removeDialog.remoteTitle = root.remoteLabel(modelData)
                             removeDialog.open()
+                        }
+                        background: Rectangle {
+                            radius: height / 2
+                            color: removeRemoteButton.down ? Qt.darker(removeRemoteButton.palette.button, 1.15)
+                                                           : (removeRemoteButton.hovered ? Qt.lighter(removeRemoteButton.palette.button, 1.05)
+                                                                                         : removeRemoteButton.palette.button)
+                            border.color: Qt.darker(removeRemoteButton.palette.button, 1.08)
+                            opacity: removeRemoteButton.enabled ? 1 : 0.5
                         }
                     }
                 }
