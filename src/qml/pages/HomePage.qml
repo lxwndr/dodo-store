@@ -79,14 +79,7 @@ Item {
                 text: qsTr("Refresh")
                 enabled: !flatpakBackend.busy
                 onClicked: flatpakBackend.refreshHome()
-                background: Rectangle {
-                    radius: height / 2
-                    color: refreshButton.down ? Qt.darker(refreshButton.palette.button, 1.15)
-                                              : (refreshButton.hovered ? Qt.lighter(refreshButton.palette.button, 1.05)
-                                                                       : refreshButton.palette.button)
-                    border.color: Qt.darker(refreshButton.palette.button, 1.08)
-                    opacity: refreshButton.enabled ? 1 : 0.5
-                }
+
             }
         }
 
