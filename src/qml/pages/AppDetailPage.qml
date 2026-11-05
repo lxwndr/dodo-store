@@ -314,7 +314,7 @@ Item {
                             implicitWidth: 130
                             implicitHeight: 36
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
-                            palette.button: root.updateAvailable ? "#2ca34a" : palette.highlight
+                            palette.button: root.updateAvailable ? "#2ca34a" : "#0081ff"
                             palette.buttonText: "white"
                             onClicked: {
                                 if (root.updateAvailable)
@@ -333,7 +333,7 @@ Item {
                             implicitWidth: 130
                             implicitHeight: 36
                             text: qsTr("Open")
-                            palette.button: palette.highlight
+                            palette.button: "#0081ff"
                             palette.buttonText: "white"
                             onClicked: flatpakBackend.launchApp(root.appAppId,
                                                                 root.appBranch, root.appArch)
