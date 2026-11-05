@@ -106,6 +106,7 @@ Item {
                 id: remoteBox
                 Layout.preferredWidth: 200
                 model: flatpakBackend.remotes
+                background: null
 
                 // Keep the selection in sync when the remote list or the current
                 // remote changes without breaking the user's own choice.
