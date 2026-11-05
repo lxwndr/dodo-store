@@ -34,13 +34,31 @@ Item {
                 color: palette.windowText
             }
             Button {
+                id: updateAllButton
                 text: qsTr("Update All")
                 enabled: flatpakBackend.updatesModel.count > 0 && !flatpakBackend.busy
                 onClicked: flatpakBackend.updateAll()
+                background: Rectangle {
+                    radius: height / 2
+                    color: updateAllButton.down ? Qt.darker(updateAllButton.palette.button, 1.15)
+                                                : (updateAllButton.hovered ? Qt.lighter(updateAllButton.palette.button, 1.05)
+                                                                           : updateAllButton.palette.button)
+                    border.color: Qt.darker(updateAllButton.palette.button, 1.08)
+                    opacity: updateAllButton.enabled ? 1 : 0.5
+                }
             }
             Button {
+                id: checkUpdatesButton
                 text: qsTr("Check for updates")
                 onClicked: flatpakBackend.refreshInstalled()
+                background: Rectangle {
+                    radius: height / 2
+                    color: checkUpdatesButton.down ? Qt.darker(checkUpdatesButton.palette.button, 1.15)
+                                                   : (checkUpdatesButton.hovered ? Qt.lighter(checkUpdatesButton.palette.button, 1.05)
+                                                                                 : checkUpdatesButton.palette.button)
+                    border.color: Qt.darker(checkUpdatesButton.palette.button, 1.08)
+                    opacity: checkUpdatesButton.enabled ? 1 : 0.5
+                }
             }
             Button {
                 text: qsTr("Cancel")
