@@ -6,6 +6,7 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import org.deepin.dtk 1.0
+import org.deepin.dtk.style 1.0 as DS
 
 // Detail page layout follows the deepin App Store detail view: a header with
 // icon / title / summary + tags and the primary action on the right, a facts
@@ -315,6 +316,17 @@ Item {
                             implicitHeight: 36
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
                             highlighted: !root.updateAvailable
+                            textColor: root.updateAvailable ? "white" : DS.Style.highlightedButton.text
+                            background: ButtonPanel {
+                                button: primaryButton
+                                color1: root.updateAvailable ? "#2ca34a" : DS.Style.highlightedButton.background1
+                                color2: root.updateAvailable ? "#2ca34a" : DS.Style.highlightedButton.background2
+                                insideBorderColor: root.updateAvailable ? "#258b40" : DS.Style.highlightedButton.border
+                                outsideBorderColor: null
+                                dropShadowColor: root.updateAvailable ? null : DS.Style.highlightedButton.dropShadow
+                                innerShadowColor1: root.updateAvailable ? null : DS.Style.highlightedButton.innerShadow1
+                                innerShadowColor2: root.updateAvailable ? null : DS.Style.highlightedButton.innerShadow2
+                            }
                             onClicked: {
                                 if (root.updateAvailable)
                                     flatpakBackend.updateApp(root.appAppId, root.appBranch, root.appArch)
