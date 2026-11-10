@@ -98,6 +98,7 @@ Rectangle {
         text: root.actionText
         visible: root.actionText.length > 0
         highlighted: actionBtn.text === qsTr("Update")
+        palette.highlight: "#0081FF"
         onClicked: root.actionClicked()
     }
 
