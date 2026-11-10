@@ -9,6 +9,7 @@
         <file>qml/pages/RemotesPage.qml</file>
         <file>qml/components/AppCard.qml</file>
         <file>qml/components/AppListItem.qml</file>
+        <file>qml/components/UpdateButtonPanel.qml</file>
         <file>qml/components/blocks.svg</file>
         <file>qml/icons/home.svg</file>
         <file>qml/icons/browse.svg</file>
