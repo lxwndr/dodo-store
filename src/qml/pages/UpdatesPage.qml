@@ -37,8 +37,7 @@ Item {
                 id: updateAllButton
                 text: qsTr("Update All")
                 enabled: flatpakBackend.updatesModel.count > 0 && !flatpakBackend.busy
-                palette.button: "#2ca34a"
-                palette.buttonText: "white"
+                highlighted: true
                 onClicked: flatpakBackend.updateAll()
 
             }
