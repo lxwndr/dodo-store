@@ -96,6 +96,13 @@ Rectangle {
         text: root.actionText
         visible: root.actionText.length > 0
         highlighted: actionBtn.text === qsTr("Update")
+        background: Rectangle {
+            radius: 6
+            color: actionBtn.text !== qsTr("Update") ? "transparent"
+                  : actionBtn.down ? "#218838"
+                  : actionBtn.hovered ? "#28a745"
+                  : "#2eaa50"
+        }
         onClicked: root.actionClicked()
     }
 
