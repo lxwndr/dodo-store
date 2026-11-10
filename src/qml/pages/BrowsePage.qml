@@ -150,6 +150,8 @@ Item {
             cellHeight: 96
             leftMargin: Math.max(0, (width - Math.max(1, Math.floor(width / cellWidth)) * cellWidth) / 2)
             rightMargin: leftMargin
+            topMargin: Math.max(0, (height - Math.ceil(count / Math.max(1, Math.floor(width / cellWidth))) * cellHeight) / 2)
+            bottomMargin: topMargin
 
             model: root.categories
 
@@ -195,6 +197,8 @@ Item {
             cellHeight: 190
             leftMargin: Math.max(0, (width - Math.max(1, Math.floor(width / cellWidth)) * cellWidth) / 2)
             rightMargin: leftMargin
+            topMargin: Math.max(0, (height - Math.ceil(count / Math.max(1, Math.floor(width / cellWidth))) * cellHeight) / 2)
+            bottomMargin: topMargin
             focus: true
 
             model: flatpakBackend.browseListModel
