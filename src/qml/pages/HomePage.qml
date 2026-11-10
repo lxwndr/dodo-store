@@ -101,23 +101,6 @@ Item {
                     rightPadding: 16
                     onClicked: root.currentIndex = index
 
-                    contentItem: Text {
-                        text: tabButton.text
-                        font: DTK.fontManager.t7
-                        color: tabButton.checked ? palette.highlight
-                                                 : palette.windowText
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    background: Rectangle {
-                        radius: height / 2
-                        color: tabButton.checked
-                               ? Qt.alpha(palette.highlight, 0.16)
-                               : (tabButton.hovered
-                                  ? Qt.alpha(palette.windowText, 0.05)
-                                  : "transparent")
-                    }
                 }
             }
         }
