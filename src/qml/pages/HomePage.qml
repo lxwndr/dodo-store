@@ -6,6 +6,7 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import org.deepin.dtk 1.0
+import org.deepin.dtk.style 1.0 as DS
 import "../components"
 
 Item {
@@ -85,7 +86,7 @@ Item {
 
             Rectangle {
                 anchors.fill: parent
-                radius: height / 2
+                radius: DS.Style.control.radius
                 color: Qt.alpha(palette.windowText, 0.06)
                 border.width: 1
                 border.color: Qt.alpha(palette.windowText, 0.08)
@@ -95,7 +96,7 @@ Item {
                 x: root.currentIndex * width
                 width: parent.width / Math.max(1, root.tabKeys.length)
                 height: parent.height
-                radius: height / 2
+                radius: DS.Style.control.radius
                 color: palette.button
                 border.width: 1
                 border.color: Qt.alpha(palette.windowText, 0.10)
