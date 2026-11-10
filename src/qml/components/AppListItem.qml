@@ -96,10 +96,6 @@ Rectangle {
         text: root.actionText
         visible: root.actionText.length > 0
         highlighted: actionBtn.text === qsTr("Update")
-        background: UpdateButtonPanel {
-            button: actionBtn
-            green: actionBtn.text === qsTr("Update")
-        }
         onClicked: root.actionClicked()
     }
 
