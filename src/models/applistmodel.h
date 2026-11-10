@@ -25,7 +25,6 @@ public:
         SummaryRole,
         DescriptionRole,
         VersionRole,
-        AvailableVersionRole,
         RemoteRole,
         BranchRole,
         ArchRole,
