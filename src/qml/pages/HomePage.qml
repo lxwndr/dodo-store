@@ -74,13 +74,6 @@ Item {
                 elide: Text.ElideRight
             }
 
-            Button {
-                id: refreshButton
-                text: qsTr("Refresh")
-                enabled: !flatpakBackend.busy
-                onClicked: flatpakBackend.refreshHome()
-
-            }
         }
 
         // Curated categories in a single segmented pill.
