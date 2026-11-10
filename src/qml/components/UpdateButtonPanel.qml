@@ -15,52 +15,52 @@ P.ButtonPanel {
 
     D.Palette {
         id: greenBackground1
-        normal.common: "#35a85b"
-        hovered.common: "#43b96a"
-        pressed.common: "#278849"
-        disabled.common: "#9bbda5"
+        normal.common: Qt.rgba(0.207843, 0.658824, 0.356863, 1)
+        hovered.common: Qt.rgba(0.262745, 0.72549, 0.415686, 1)
+        pressed.common: Qt.rgba(0.152941, 0.533333, 0.286275, 1)
+        disabled.common: Qt.rgba(0.607843, 0.741176, 0.647059, 1)
     }
     D.Palette {
         id: greenBackground2
-        normal.common: "#2d984f"
-        hovered.common: "#369f59"
-        pressed.common: "#237d43"
-        disabled.common: "#91ae99"
+        normal.common: Qt.rgba(0.176471, 0.596078, 0.309804, 1)
+        hovered.common: Qt.rgba(0.211765, 0.623529, 0.34902, 1)
+        pressed.common: Qt.rgba(0.137255, 0.490196, 0.262745, 1)
+        disabled.common: Qt.rgba(0.568627, 0.682353, 0.6, 1)
     }
     D.Palette {
         id: greenInsideBorder
-        normal.common: "#59bd78"
-        hovered.common: "#70cc8b"
-        pressed.common: "#237a43"
-        disabled.common: "#a9c1af"
+        normal.common: Qt.rgba(0.34902, 0.741176, 0.470588, 1)
+        hovered.common: Qt.rgba(0.439216, 0.8, 0.545098, 1)
+        pressed.common: Qt.rgba(0.137255, 0.478431, 0.262745, 1)
+        disabled.common: Qt.rgba(0.662745, 0.756863, 0.686275, 1)
     }
     D.Palette {
         id: greenOutsideBorder
-        normal.common: "#267c43"
-        hovered.common: "#2d8d4d"
-        pressed.common: "#1d6637"
-        disabled.common: "#879d8d"
+        normal.common: Qt.rgba(0.14902, 0.486275, 0.262745, 1)
+        hovered.common: Qt.rgba(0.176471, 0.552941, 0.301961, 1)
+        pressed.common: Qt.rgba(0.113725, 0.4, 0.215686, 1)
+        disabled.common: Qt.rgba(0.529412, 0.615686, 0.552941, 1)
     }
     D.Palette {
         id: greenDropShadow
-        normal.common: "#40206b39"
-        hovered.common: "#50206b39"
-        pressed.common: "#30206b39"
-        disabled.common: "#20206b39"
+        normal.common: Qt.rgba(0.12549, 0.419608, 0.223529, 0.25098)
+        hovered.common: Qt.rgba(0.12549, 0.419608, 0.223529, 0.313725)
+        pressed.common: Qt.rgba(0.12549, 0.419608, 0.223529, 0.188235)
+        disabled.common: Qt.rgba(0.12549, 0.419608, 0.223529, 0.12549)
     }
     D.Palette {
         id: greenInnerShadow1
-        normal.common: "#245b35"
-        hovered.common: "#2b7040"
-        pressed.common: "#17482a"
-        disabled.common: "#718a78"
+        normal.common: Qt.rgba(0.141176, 0.356863, 0.207843, 1)
+        hovered.common: Qt.rgba(0.168627, 0.439216, 0.25098, 1)
+        pressed.common: Qt.rgba(0.090196, 0.282353, 0.164706, 1)
+        disabled.common: Qt.rgba(0.443137, 0.541176, 0.470588, 1)
     }
     D.Palette {
         id: greenInnerShadow2
-        normal.common: "#3a9a58"
-        hovered.common: "#48aa67"
-        pressed.common: "#267d45"
-        disabled.common: "#91ad98"
+        normal.common: Qt.rgba(0.227451, 0.603922, 0.345098, 1)
+        hovered.common: Qt.rgba(0.282353, 0.666667, 0.403922, 1)
+        pressed.common: Qt.rgba(0.14902, 0.490196, 0.270588, 1)
+        disabled.common: Qt.rgba(0.568627, 0.678431, 0.596078, 1)
     }
 
     color1: green ? greenBackground1
