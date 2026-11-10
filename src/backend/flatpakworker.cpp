@@ -16,7 +16,6 @@
 #include <QThread>
 #include <QMetaType>
 #include <QSet>
-#include <QHash>
 #include <QVariantMap>
 #include <QUrl>
 #include <QRegularExpression>
@@ -721,70 +720,6 @@ void FlatpakWorker::loadUpdates()
         return;
     }
 
-    // Resolve available AppStream versions once per remote. Update refs are
-    // installed refs, so their appdata version is the currently installed one.
-    // The matching remote ref supplies the version that will be installed.
-    QHash<QString, QString> availableVersions;
-    QSet<QString> loadedRemotes;
-    const auto versionKey = [](const QString &remote, const QString &name,
-                               const QString &arch, const QString &branch) {
-        return remote + QLatin1Char('|') + name + QLatin1Char('|')
-               + arch + QLatin1Char('|') + branch;
-    };
-
-    for (guint i = 0; i < refs->len; ++i) {
-        FlatpakInstalledRef *installedRef =
-            static_cast<FlatpakInstalledRef *>(g_ptr_array_index(refs, i));
-        if (!installedRef
-            || flatpak_ref_get_kind(FLATPAK_REF(installedRef)) != FLATPAK_REF_KIND_APP)
-            continue;
-
-        const QString remote = QString::fromUtf8(flatpak_installed_ref_get_origin(installedRef));
-        if (remote.isEmpty() || loadedRemotes.contains(remote))
-            continue;
-        loadedRemotes.insert(remote);
-
-        g_autoptr(GError) remoteError = nullptr;
-        g_autoptr(GPtrArray) remoteRefs =
-            flatpak_installation_list_remote_refs_sync_full(
-                inst, remote.toUtf8().constData(), FLATPAK_QUERY_FLAGS_ONLY_CACHED,
-                nullptr, &remoteError);
-
-        // If this remote has no local summary cache yet, fetch it once.
-        if (!remoteRefs || remoteRefs->len == 0) {
-            if (remoteError)
-                g_clear_error(&remoteError);
-            remoteRefs = flatpak_installation_list_remote_refs_sync_full(
-                inst, remote.toUtf8().constData(), FLATPAK_QUERY_FLAGS_NONE,
-                nullptr, &remoteError);
-        }
-
-        if (!remoteRefs) {
-            qWarning() << "flatpak: cannot read refs for update remote" << remote
-                       << ":" << (remoteError ? remoteError->message : "unknown");
-            continue;
-        }
-
-        for (guint j = 0; j < remoteRefs->len; ++j) {
-            FlatpakRemoteRef *remoteRef =
-                static_cast<FlatpakRemoteRef *>(g_ptr_array_index(remoteRefs, j));
-            if (!remoteRef
-                || flatpak_ref_get_kind(FLATPAK_REF(remoteRef)) != FLATPAK_REF_KIND_APP)
-                continue;
-
-            const char *version = flatpak_remote_ref_get_appdata_version(remoteRef);
-            if (!version || !*version)
-                continue;
-
-            availableVersions.insert(
-                versionKey(remote,
-                           QString::fromUtf8(flatpak_ref_get_name(FLATPAK_REF(remoteRef))),
-                           QString::fromUtf8(flatpak_ref_get_arch(FLATPAK_REF(remoteRef))),
-                           QString::fromUtf8(flatpak_ref_get_branch(FLATPAK_REF(remoteRef)))),
-                QString::fromUtf8(version));
-        }
-    }
-
     QList<AppItem *> items;
     items.reserve(refs->len);
     for (guint i = 0; i < refs->len; ++i) {
@@ -792,11 +727,6 @@ void FlatpakWorker::loadUpdates()
         if (!ref)
             continue;
         AppItem *item = d->makeInstalledItem(ref);
-        if (!item->isRuntime()) {
-            const QString key = versionKey(
-                item->remote(), item->appId(), item->arch(), item->branch());
-            item->setAvailableVersion(availableVersions.value(key));
-        }
         item->setUpdateAvailable(true);
         items.append(item);
     }
