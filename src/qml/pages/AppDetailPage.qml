@@ -314,7 +314,7 @@ Item {
                             implicitWidth: 130
                             implicitHeight: 36
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
-                            highlighted: !root.updateAvailable
+                            highlighted: true
                             onClicked: {
                                 if (root.updateAvailable)
                                     flatpakBackend.updateApp(root.appAppId, root.appBranch, root.appArch)
