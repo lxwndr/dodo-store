@@ -41,6 +41,7 @@ QVariant AppListModel::data(const QModelIndex &index, int role) const
     case SummaryRole: return item->summary();
     case DescriptionRole: return item->description();
     case VersionRole: return item->version();
+    case AvailableVersionRole: return item->availableVersion();
     case RemoteRole: return item->remote();
     case BranchRole: return item->branch();
     case ArchRole: return item->arch();
@@ -66,6 +67,7 @@ QHash<int, QByteArray> AppListModel::roleNames() const
         { SummaryRole, "summary" },
         { DescriptionRole, "description" },
         { VersionRole, "version" },
+        { AvailableVersionRole, "availableVersion" },
         { RemoteRole, "remote" },
         { BranchRole, "branch" },
         { ArchRole, "arch" },
