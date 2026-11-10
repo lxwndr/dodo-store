@@ -40,12 +40,6 @@ Item {
                 onClicked: flatpakBackend.updateAll()
             }
             Button {
-                id: checkUpdatesButton
-                text: qsTr("Check for updates")
-                onClicked: flatpakBackend.refreshInstalled()
-
-            }
-            Button {
                 text: qsTr("Cancel")
                 visible: flatpakBackend.busy
                 onClicked: flatpakBackend.cancelOperation()
