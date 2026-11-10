@@ -83,23 +83,64 @@ Item {
             }
         }
 
-        // Curated category tabs.
-        Row {
+        // Curated categories in a single segmented pill.
+        Item {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 4
+            implicitWidth: root.tabKeys.length * 112
+            width: implicitWidth
+            height: 36
 
-            Repeater {
-                model: root.tabKeys
+            Rectangle {
+                anchors.fill: parent
+                radius: height / 2
+                color: Qt.alpha(palette.windowText, 0.06)
+                border.width: 1
+                border.color: Qt.alpha(palette.windowText, 0.08)
+            }
 
-                Button {
-                    id: tabButton
-                    text: root.tabLabel(modelData)
-                    checkable: true
-                    checked: index === root.currentIndex
-                    implicitHeight: 32
-                    leftPadding: 16
-                    rightPadding: 16
-                    onClicked: root.currentIndex = index
+            Rectangle {
+                x: root.currentIndex * width
+                width: parent.width / Math.max(1, root.tabKeys.length)
+                height: parent.height
+                radius: height / 2
+                color: palette.button
+                border.width: 1
+                border.color: Qt.alpha(palette.windowText, 0.10)
+
+                Behavior on x {
+                    NumberAnimation {
+                        duration: 180
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            }
+
+            Row {
+                anchors.fill: parent
+
+                Repeater {
+                    model: root.tabKeys
+
+                    Item {
+                        width: parent.width / Math.max(1, root.tabKeys.length)
+                        height: parent.height
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: root.tabLabel(modelData)
+                            color: palette.windowText
+                            opacity: index === root.currentIndex ? 1.0 : 0.72
+                            font: DTK.fontManager.t6
+                            font.weight: index === root.currentIndex
+                                         ? Font.DemiBold : Font.Normal
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.currentIndex = index
+                        }
+                    }
                 }
             }
         }
