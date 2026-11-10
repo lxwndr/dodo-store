@@ -262,8 +262,6 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
     const QList<AppStream::Release> releases = comp.releasesPlain().entries();
     bool haveNotes = false;
     bool haveVersion = !item->version().isEmpty();
-    QString latestReleaseVersion;
-    QDateTime latestReleaseDate;
     for (const auto &release : releases) {
         if (!haveNotes) {
             const QString notes = plainText(release.description());
@@ -275,36 +273,13 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
         }
 
         const QString relVersion = release.version();
-        if (!relVersion.isEmpty()) {
-            const QDateTime releaseDate = release.timestamp();
-            if (latestReleaseVersion.isEmpty()
-                || (releaseDate.isValid()
-                    && (!latestReleaseDate.isValid() || releaseDate > latestReleaseDate))) {
-                latestReleaseVersion = relVersion;
-                latestReleaseDate = releaseDate;
-            }
-            // For installed update rows, keep the installed version
-            // distinct from the repository's newest release. If Flatpak did
-            // not provide an installed appdata version, do not fill it with a
-            // release version: that would make the old/new comparison false.
-            if (!haveVersion && !item->updateAvailable()) {
-                item->setVersion(relVersion);
-                haveVersion = true;
-                changed = true;
-            }
+        if (!relVersion.isEmpty() && !haveVersion) {
+            item->setVersion(relVersion);
+            haveVersion = true;
+            changed = true;
         }
-        if (haveNotes && haveVersion && !item->updateAvailable())
+        if (haveNotes && haveVersion)
             break;
-    }
-
-    // The installed ref's version is the old version. AppStream releases
-    // describe published versions, so use the newest release as the target
-    // version for application updates. Runtime rows intentionally stay plain.
-    if (item->updateAvailable() && !item->isRuntime()
-        && !latestReleaseVersion.isEmpty()
-        && latestReleaseVersion != item->version()) {
-        item->setAvailableVersion(latestReleaseVersion);
-        changed = true;
     }
 
     // Icon: prefer the 128px cached/remote icon.
