@@ -108,6 +108,19 @@ Item {
                 model: flatpakBackend.remotes
                 background: null
 
+                // Display the active remote explicitly. This avoids an empty
+                // closed ComboBox when the QStringList model is populated
+                // asynchronously or its current index is synchronized later.
+                contentItem: Text {
+                    leftPadding: 0
+                    rightPadding: remoteBox.indicator.width + remoteBox.spacing
+                    text: flatpakBackend.currentRemote || qsTr("Select source")
+                    font: remoteBox.font
+                    color: remoteBox.palette.text
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                }
+
                 // Keep the selection in sync when the remote list or the current
                 // remote changes without breaking the user's own choice.
                 function syncIndex() {
