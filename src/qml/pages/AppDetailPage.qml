@@ -315,7 +315,8 @@ Item {
                             implicitWidth: 130
                             implicitHeight: 36
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
-                            highlighted: !root.updateAvailable
+                            // Keep highlighted text contrast for both actions.
+                            highlighted: true
                             background: UpdateButtonPanel {
                                 button: primaryButton
                                 green: root.updateAvailable
