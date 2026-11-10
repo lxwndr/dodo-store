@@ -148,6 +148,8 @@ Item {
             clip: true
             cellWidth: 220
             cellHeight: 96
+            leftMargin: Math.max(0, (width - Math.max(1, Math.floor(width / cellWidth)) * cellWidth) / 2)
+            rightMargin: leftMargin
 
             model: root.categories
 
@@ -191,6 +193,8 @@ Item {
             clip: true
             cellWidth: 200
             cellHeight: 190
+            leftMargin: Math.max(0, (width - Math.max(1, Math.floor(width / cellWidth)) * cellWidth) / 2)
+            rightMargin: leftMargin
             focus: true
 
             model: flatpakBackend.browseListModel
