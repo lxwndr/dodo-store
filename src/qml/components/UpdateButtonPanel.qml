@@ -15,52 +15,52 @@ P.ButtonPanel {
 
     D.Palette {
         id: greenBackground1
-        normal: "#35a85b"
-        hovered: "#43b96a"
-        pressed: "#278849"
-        disabled: "#9bbda5"
+        normal.common: "#35a85b"
+        hovered.common: "#43b96a"
+        pressed.common: "#278849"
+        disabled.common: "#9bbda5"
     }
     D.Palette {
         id: greenBackground2
-        normal: "#2d984f"
-        hovered: "#369f59"
-        pressed: "#237d43"
-        disabled: "#91ae99"
+        normal.common: "#2d984f"
+        hovered.common: "#369f59"
+        pressed.common: "#237d43"
+        disabled.common: "#91ae99"
     }
     D.Palette {
         id: greenInsideBorder
-        normal: "#59bd78"
-        hovered: "#70cc8b"
-        pressed: "#237a43"
-        disabled: "#a9c1af"
+        normal.common: "#59bd78"
+        hovered.common: "#70cc8b"
+        pressed.common: "#237a43"
+        disabled.common: "#a9c1af"
     }
     D.Palette {
         id: greenOutsideBorder
-        normal: "#267c43"
-        hovered: "#2d8d4d"
-        pressed: "#1d6637"
-        disabled: "#879d8d"
+        normal.common: "#267c43"
+        hovered.common: "#2d8d4d"
+        pressed.common: "#1d6637"
+        disabled.common: "#879d8d"
     }
     D.Palette {
         id: greenDropShadow
-        normal: "#40206b39"
-        hovered: "#50206b39"
-        pressed: "#30206b39"
-        disabled: "#20206b39"
+        normal.common: "#40206b39"
+        hovered.common: "#50206b39"
+        pressed.common: "#30206b39"
+        disabled.common: "#20206b39"
     }
     D.Palette {
         id: greenInnerShadow1
-        normal: "#245b35"
-        hovered: "#2b7040"
-        pressed: "#17482a"
-        disabled: "#718a78"
+        normal.common: "#245b35"
+        hovered.common: "#2b7040"
+        pressed.common: "#17482a"
+        disabled.common: "#718a78"
     }
     D.Palette {
         id: greenInnerShadow2
-        normal: "#3a9a58"
-        hovered: "#48aa67"
-        pressed: "#267d45"
-        disabled: "#91ad98"
+        normal.common: "#3a9a58"
+        hovered.common: "#48aa67"
+        pressed.common: "#267d45"
+        disabled.common: "#91ad98"
     }
 
     color1: green ? greenBackground1
