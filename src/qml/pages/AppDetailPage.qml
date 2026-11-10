@@ -317,10 +317,6 @@ Item {
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
                             // Keep highlighted text contrast for both actions.
                             highlighted: true
-                            background: UpdateButtonPanel {
-                                button: primaryButton
-                                green: root.updateAvailable
-                            }
                             onClicked: {
                                 if (root.updateAvailable)
                                     flatpakBackend.updateApp(root.appAppId, root.appBranch, root.appArch)
@@ -333,7 +329,7 @@ Item {
                         // Launch the installed app without changing its install state.
                         Button {
                             id: openButton
-                            visible: root.installed
+                            visible: root.installed && !root.updateAvailable
                             enabled: !flatpakBackend.busy
                             implicitWidth: 130
                             implicitHeight: 36
