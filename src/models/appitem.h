@@ -19,6 +19,7 @@ class AppItem : public QObject
     Q_PROPERTY(QString summary READ summary WRITE setSummary NOTIFY summaryChanged)
     Q_PROPERTY(QString description READ description WRITE setDescription NOTIFY descriptionChanged)
     Q_PROPERTY(QString version READ version WRITE setVersion NOTIFY versionChanged)
+    Q_PROPERTY(QString availableVersion READ availableVersion WRITE setAvailableVersion NOTIFY availableVersionChanged)
     Q_PROPERTY(QString remote READ remote CONSTANT)
     Q_PROPERTY(QString branch READ branch CONSTANT)
     Q_PROPERTY(QString arch READ arch CONSTANT)
@@ -53,6 +54,8 @@ public:
     void setDescription(const QString &description);
     QString version() const;
     void setVersion(const QString &version);
+    QString availableVersion() const;
+    void setAvailableVersion(const QString &version);
     QString remote() const;
     QString branch() const;
     QString arch() const;
@@ -92,6 +95,7 @@ Q_SIGNALS:
     void summaryChanged();
     void descriptionChanged();
     void versionChanged();
+    void availableVersionChanged();
     void runtimeChanged();
     void licenseChanged();
     void developerChanged();
@@ -111,6 +115,7 @@ private:
     QString m_summary;
     QString m_description;
     QString m_version;
+    QString m_availableVersion;
     QString m_remote;
     QString m_branch;
     QString m_arch;
