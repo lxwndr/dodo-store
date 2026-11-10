@@ -41,7 +41,6 @@ QVariant AppListModel::data(const QModelIndex &index, int role) const
     case SummaryRole: return item->summary();
     case DescriptionRole: return item->description();
     case VersionRole: return item->version();
-    case AvailableVersionRole: return item->availableVersion();
     case RemoteRole: return item->remote();
     case BranchRole: return item->branch();
     case ArchRole: return item->arch();
@@ -67,7 +66,6 @@ QHash<int, QByteArray> AppListModel::roleNames() const
         { SummaryRole, "summary" },
         { DescriptionRole, "description" },
         { VersionRole, "version" },
-        { AvailableVersionRole, "availableVersion" },
         { RemoteRole, "remote" },
         { BranchRole, "branch" },
         { ArchRole, "arch" },
@@ -88,13 +86,6 @@ void AppListModel::appendItem(AppItem *item)
 {
     beginInsertRows(QModelIndex(), m_items.size(), m_items.size());
     m_items.append(item);
-    if (item) {
-        connect(item, &AppItem::availableVersionChanged, this, [this, item] {
-            const int row = m_items.indexOf(item);
-            if (row >= 0)
-                Q_EMIT dataChanged(index(row, 0), index(row, 0), {AvailableVersionRole});
-        });
-    }
     endInsertRows();
 }
 
@@ -106,15 +97,6 @@ void AppListModel::appendItems(const QList<AppItem *> &items)
     // 4000-row catalog floods the proxies and views on the GUI thread.
     beginInsertRows(QModelIndex(), m_items.size(), m_items.size() + items.size() - 1);
     m_items.append(items);
-    for (AppItem *item : items) {
-        if (!item)
-            continue;
-        connect(item, &AppItem::availableVersionChanged, this, [this, item] {
-            const int row = m_items.indexOf(item);
-            if (row >= 0)
-                Q_EMIT dataChanged(index(row, 0), index(row, 0), {AvailableVersionRole});
-        });
-    }
     endInsertRows();
 }
 
