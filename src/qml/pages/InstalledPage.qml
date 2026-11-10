@@ -25,12 +25,6 @@ Item {
                 Layout.fillWidth: true
                 placeholderText: qsTr("Search installed applications...")
             }
-            Button {
-                id: refreshButton
-                text: qsTr("Refresh")
-                onClicked: flatpakBackend.refreshInstalled()
-
-            }
         }
 
         AppFilterProxyModel {
