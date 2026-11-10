@@ -30,8 +30,6 @@ QString AppItem::description() const { return m_description; }
 void AppItem::setDescription(const QString &description) { if (m_description != description) { m_description = description; Q_EMIT descriptionChanged(); } }
 QString AppItem::version() const { return m_version; }
 void AppItem::setVersion(const QString &version) { if (m_version != version) { m_version = version; Q_EMIT versionChanged(); } }
-QString AppItem::availableVersion() const { return m_availableVersion; }
-void AppItem::setAvailableVersion(const QString &version) { if (m_availableVersion != version) { m_availableVersion = version; Q_EMIT availableVersionChanged(); } }
 QString AppItem::remote() const { return m_remote; }
 QString AppItem::branch() const { return m_branch; }
 QString AppItem::arch() const { return m_arch; }
