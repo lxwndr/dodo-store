@@ -171,6 +171,7 @@ Item {
             delegate: Rectangle {
                 id: categoryTile
                 width: categoriesGrid.cellWidth - 12
+                x: (categoriesGrid.cellWidth - width) / 2
                 height: categoriesGrid.cellHeight - 12
                 radius: 12
                 color: tileArea.containsMouse
@@ -223,6 +224,7 @@ Item {
 
             delegate: AppCard {
                 width: appsGrid.cellWidth - 16
+                x: (appsGrid.cellWidth - width) / 2
                 height: appsGrid.cellHeight - 16
                 onClicked: {
                     if (root.openDetail)
