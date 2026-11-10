@@ -75,8 +75,10 @@ Rectangle {
         anchors.right: actionBtn.left
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
-        width: 110
-        text: model.version
+        width: 160
+        text: model.availableVersion && model.version
+              ? model.version + " → " + model.availableVersion
+              : (model.availableVersion || model.version || "")
         font: DTK.fontManager.t9
         color: palette.windowText
         horizontalAlignment: Text.AlignRight
