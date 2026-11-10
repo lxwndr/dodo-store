@@ -283,7 +283,11 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
                 latestReleaseVersion = relVersion;
                 latestReleaseDate = releaseDate;
             }
-            if (!haveVersion) {
+            // For installed update rows, keep the installed version
+            // distinct from the repository's newest release. If Flatpak did
+            // not provide an installed appdata version, do not fill it with a
+            // release version: that would make the old/new comparison false.
+            if (!haveVersion && !item->updateAvailable()) {
                 item->setVersion(relVersion);
                 haveVersion = true;
                 changed = true;
