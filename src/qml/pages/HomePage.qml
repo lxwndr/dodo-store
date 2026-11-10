@@ -131,8 +131,6 @@ Item {
                             color: palette.windowText
                             opacity: index === root.currentIndex ? 1.0 : 0.72
                             font: DTK.fontManager.t6
-                            font.weight: index === root.currentIndex
-                                         ? Font.DemiBold : Font.Normal
                         }
 
                         MouseArea {
