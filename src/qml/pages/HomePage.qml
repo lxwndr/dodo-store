@@ -83,24 +83,46 @@ Item {
             }
         }
 
-        // Curated category tabs.
-        Row {
+        // Curated category selector.
+        Rectangle {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 4
+            implicitWidth: categoryRow.implicitWidth + 8
+            implicitHeight: 40
+            radius: height / 2
+            color: palette.button
+            border.width: 1
+            border.color: palette.mid
 
-            Repeater {
-                model: root.tabKeys
+            Row {
+                id: categoryRow
+                anchors.centerIn: parent
+                spacing: 2
 
-                Button {
-                    id: tabButton
-                    text: root.tabLabel(modelData)
-                    checkable: true
-                    checked: index === root.currentIndex
-                    implicitHeight: 32
-                    leftPadding: 16
-                    rightPadding: 16
-                    onClicked: root.currentIndex = index
+                Repeater {
+                    model: root.tabKeys
 
+                    delegate: Button {
+                        id: tabButton
+                        text: root.tabLabel(modelData)
+                        checkable: true
+                        checked: index === root.currentIndex
+                        flat: true
+                        implicitHeight: 32
+                        leftPadding: 16
+                        rightPadding: 16
+                        background: Rectangle {
+                            radius: height / 2
+                            color: tabButton.checked ? palette.highlight : "transparent"
+                        }
+                        contentItem: Text {
+                            text: tabButton.text
+                            font: tabButton.font
+                            color: tabButton.checked ? palette.highlightedText : palette.buttonText
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        onClicked: root.currentIndex = index
+                    }
                 }
             }
         }
