@@ -262,6 +262,8 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
     const QList<AppStream::Release> releases = comp.releasesPlain().entries();
     bool haveNotes = false;
     bool haveVersion = !item->version().isEmpty();
+    QString latestReleaseVersion;
+    QDateTime latestReleaseDate;
     for (const auto &release : releases) {
         if (!haveNotes) {
             const QString notes = plainText(release.description());
@@ -271,16 +273,34 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
                 changed = true;
             }
         }
-        if (!haveVersion) {
-            const QString relVersion = release.version();
-            if (!relVersion.isEmpty()) {
+
+        const QString relVersion = release.version();
+        if (!relVersion.isEmpty()) {
+            const QDateTime releaseDate = release.timestamp();
+            if (latestReleaseVersion.isEmpty()
+                || (releaseDate.isValid()
+                    && (!latestReleaseDate.isValid() || releaseDate > latestReleaseDate))) {
+                latestReleaseVersion = relVersion;
+                latestReleaseDate = releaseDate;
+            }
+            if (!haveVersion) {
                 item->setVersion(relVersion);
                 haveVersion = true;
                 changed = true;
             }
         }
-        if (haveNotes && haveVersion)
+        if (haveNotes && haveVersion && !item->updateAvailable())
             break;
+    }
+
+    // The installed ref's version is the old version. AppStream releases
+    // describe published versions, so use the newest release as the target
+    // version for application updates. Runtime rows intentionally stay plain.
+    if (item->updateAvailable() && !item->isRuntime()
+        && !latestReleaseVersion.isEmpty()
+        && latestReleaseVersion != item->version()) {
+        item->setAvailableVersion(latestReleaseVersion);
+        changed = true;
     }
 
     // Icon: prefer the 128px cached/remote icon.
