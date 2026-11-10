@@ -75,10 +75,10 @@ Rectangle {
         anchors.right: actionBtn.left
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
-        width: 160
-        text: model.availableVersion && model.version
-              ? model.version + " → " + model.availableVersion
-              : (model.availableVersion || model.version || "")
+        width: 200
+        text: model.availableVersion
+              ? (model.version || "—") + " → " + model.availableVersion
+              : (model.version || "")
         font: DTK.fontManager.t9
         color: palette.windowText
         horizontalAlignment: Text.AlignRight
@@ -98,6 +98,7 @@ Rectangle {
         text: root.actionText
         visible: root.actionText.length > 0
         highlighted: actionBtn.text === qsTr("Update")
+        palette.highlight: "#0081FF"
         onClicked: root.actionClicked()
     }
 
