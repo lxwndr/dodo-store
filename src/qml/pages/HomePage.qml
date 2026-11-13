@@ -13,6 +13,41 @@ Item {
     id: root
     property var openDetail: null
     property string searchText: ""
+    property string searchError: ""
+    property bool flathubSearchRequested: false
+
+    function updateSearch() {
+        if (!searching) {
+            searchError = ""
+            flathubSearchRequested = false
+            flatpakBackend.searchBrowse("")
+            return
+        }
+
+        var flathub = null
+        for (var i = 0; i < flatpakBackend.remotesInfo.length; ++i) {
+            var remote = flatpakBackend.remotesInfo[i]
+            if (remote.name === "flathub") {
+                flathub = remote
+                break
+            }
+        }
+
+        if (!flathub || flathub.disabled || flathub.noEnumerate) {
+            searchError = qsTr("The Flathub repository is not configured or is unavailable for search.")
+            flathubSearchRequested = false
+            flatpakBackend.searchBrowse("")
+            return
+        }
+
+        searchError = ""
+        flatpakBackend.searchBrowse(searchText.trim())
+        if (flatpakBackend.currentRemote !== "flathub" || !flathubSearchRequested) {
+            flatpakBackend.currentRemote = "flathub"
+            flathubSearchRequested = true
+            flatpakBackend.refreshBrowse()
+        }
+    }
 
     // With the store API enabled Home offers four curated lists; offline it
     // falls back to the two lists that can be derived locally.
@@ -29,9 +64,13 @@ Item {
     readonly property bool searching: searchText.trim().length > 0
     readonly property var displayedModel: searching ? flatpakBackend.browseListModel : currentModel
 
-    onSearchTextChanged: {
-        if (searching)
-            flatpakBackend.searchBrowse(searchText.trim())
+    onSearchTextChanged: updateSearch()
+
+    Connections {
+        target: flatpakBackend
+        function onRemotesInfoChanged() {
+            root.updateSearch()
+        }
     }
 
     function tabLabel(key) {
@@ -184,9 +223,20 @@ Item {
 
             Label {
                 anchors.centerIn: parent
-                visible: root.searching
+                width: parent.width * 0.8
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
+                visible: root.searching && root.searchError.length > 0
+                text: root.searchError
+                color: palette.windowText
+                opacity: 0.75
+            }
+
+            Label {
+                anchors.centerIn: parent
+                visible: root.searching && root.searchError.length === 0
                          ? !flatpakBackend.busy && (!root.displayedModel || root.displayedModel.count === 0)
-                         : root.currentModel && root.currentModel.count === 0
+                         : !root.searching && root.currentModel && root.currentModel.count === 0
                            && (root.currentStatus === "ok" || root.currentStatus === "stale")
                 text: root.searching ? qsTr("No applications found.") : qsTr("No applications")
                 color: palette.windowText
