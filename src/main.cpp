@@ -16,6 +16,7 @@
 #include <QStringList>
 #include <QDBusConnection>
 #include <QDBusMessage>
+#include <QDBusPendingCall>
 #include <QVariantMap>
 
 #include <DLog>
