@@ -70,18 +70,12 @@ Item {
         anchors.margins: 24
         spacing: 16
 
-        RowLayout {
+        Text {
             Layout.fillWidth: true
-            spacing: 8
-
-            Text {
-                Layout.fillWidth: true
-                text: root.searching ? qsTr("Search results") : qsTr("Discover applications")
-                font: DTK.fontManager.t4
-                color: palette.windowText
-                elide: Text.ElideRight
-            }
-
+            text: root.searching ? qsTr("Search results") : qsTr("Discover applications")
+            font: DTK.fontManager.t4
+            color: palette.windowText
+            elide: Text.ElideRight
         }
 
         // Curated category tabs.
