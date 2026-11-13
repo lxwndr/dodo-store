@@ -34,19 +34,22 @@ Item {
         }
 
         if (!flathub || flathub.disabled || flathub.noEnumerate) {
-            searchError = qsTr("The Flathub repository is not configured or is unavailable for search.")
+            searchError = qsTr("Flathub is not available for search. Configure the Flathub remote in Repositories and try again.")
             flathubSearchRequested = false
             flatpakBackend.searchBrowse("")
             return
         }
 
         searchError = ""
-        flatpakBackend.searchBrowse(searchText.trim())
-        if (flatpakBackend.currentRemote !== "flathub" || !flathubSearchRequested) {
+        // Search only the Flathub catalog. While it is loading, the view hides
+        // any results left over from a previously selected remote.
+        if (flatpakBackend.currentRemote !== "flathub")
             flatpakBackend.currentRemote = "flathub"
+        if (!flathubSearchRequested) {
             flathubSearchRequested = true
             flatpakBackend.refreshBrowse()
         }
+        flatpakBackend.searchBrowse(searchText.trim())
     }
 
     // With the store API enabled Home offers four curated lists; offline it
@@ -190,6 +193,7 @@ Item {
                 cellWidth: 200
                 cellHeight: 190
                 visible: root.displayedModel && root.displayedModel.count > 0
+                         && (!root.searching || !flatpakBackend.busy)
 
                 model: root.displayedModel
 
