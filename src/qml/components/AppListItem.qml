@@ -38,6 +38,7 @@ Rectangle {
             anchors.fill: parent
             anchors.margins: 6
             source: model.isRuntime ? "qrc:/qml/components/blocks.svg" : model.icon
+            onStatusChanged: if (status === Image.Error) console.warn("list icon: failed to load", source, "for", model.appId)
             fillMode: Image.PreserveAspectFit
             asynchronous: true
             cache: true
