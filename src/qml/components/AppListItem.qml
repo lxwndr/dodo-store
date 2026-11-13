@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 import org.deepin.dtk 1.0
 
 // Row delegate for the Installed / Updates lists. Emits two signals that the
@@ -83,7 +84,7 @@ Rectangle {
         elide: Text.ElideRight
     }
 
-    StoreActionButton {
+    Button {
         id: actionBtn
         // Keep the action button above the row-wide MouseArea so its click
         // triggers the action instead of opening the app details.
@@ -91,11 +92,8 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: 16
         anchors.verticalCenter: parent.verticalCenter
-        width: 130
-        height: 36
         text: root.actionText
         visible: root.actionText.length > 0
-        actionType: root.actionText === qsTr("Update") ? "update" : "neutral"
         onClicked: root.actionClicked()
     }
 
