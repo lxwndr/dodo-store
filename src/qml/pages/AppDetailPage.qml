@@ -6,7 +6,6 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import org.deepin.dtk 1.0
-import "../components"
 
 // Detail page layout follows the deepin App Store detail view: a header with
 // icon / title / summary + tags and the primary action on the right, a facts
@@ -308,11 +307,10 @@ Item {
                         spacing: 8
 
                         // Primary action: Install, or Update when one is available.
-                        StoreActionButton {
+                        Button {
                             visible: !root.installed || root.updateAvailable
                             enabled: !flatpakBackend.busy
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
-                            actionType: root.updateAvailable ? "update" : "primary"
                             onClicked: {
                                 if (root.updateAvailable)
                                     flatpakBackend.updateApp(root.appAppId, root.appBranch, root.appArch)
@@ -323,20 +321,18 @@ Item {
                         }
 
                         // Launch the installed app without changing its install state.
-                        StoreActionButton {
+                        Button {
                             visible: root.installed
                             enabled: !flatpakBackend.busy
                             text: qsTr("Open")
-                            actionType: "primary"
                             onClicked: flatpakBackend.launchApp(root.appAppId,
                                                                 root.appBranch, root.appArch)
                         }
 
-                        StoreActionButton {
+                        Button {
                             visible: root.installed
                             enabled: !flatpakBackend.busy
                             text: qsTr("Uninstall")
-                            actionType: "neutral"
                             onClicked: flatpakBackend.uninstallApp(root.appAppId,
                                                                    root.appBranch, root.appArch)
                         }
@@ -373,10 +369,8 @@ Item {
                         color: palette.windowText
                         elide: Text.ElideRight
                     }
-                    StoreActionButton {
-                        implicitWidth: 96
+                    Button {
                         text: qsTr("Cancel")
-                        actionType: "neutral"
                         onClicked: flatpakBackend.cancelOperation()
                     }
                 }
