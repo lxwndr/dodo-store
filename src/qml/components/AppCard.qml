@@ -30,11 +30,24 @@ Rectangle {
             color: palette.base
 
             Image {
+                id: appIcon
                 anchors.fill: parent
                 anchors.margins: 8
                 source: model.icon
                 fillMode: Image.PreserveAspectFit
-                sourceSize { width: 64; height: 64 }
+                asynchronous: true
+                cache: true
+                sourceSize { width: 128; height: 128 }
+            }
+
+            Text {
+                anchors.centerIn: parent
+                visible: !model.icon || appIcon.status === Image.Error
+                         || appIcon.status === Image.Null
+                text: (model.name || model.appId || "?").substring(0, 1).toUpperCase()
+                font: DTK.fontManager.t2
+                color: palette.windowText
+                opacity: 0.45
             }
         }
 
