@@ -96,9 +96,10 @@ ApplicationWindow {
         root.pageIndex = index
     }
 
-    // Show a transient toast on this window.
+    // Send feedback through the desktop notification service so it remains
+    // available even when the store window is not focused.
     function showToast(text) {
-        DTK.sendMessage(root, text)
+        notificationService.notify(qsTr("Dodo Store"), text)
     }
 
     // Push the persisted store API settings to the backend. Called on startup
