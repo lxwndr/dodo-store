@@ -121,6 +121,20 @@ int main(int argc, char *argv[])
     if (engine.rootObjects().isEmpty())
         return -1;
 
+    // Context properties are not consistently exposed to the root QML object
+    // by every supported Qt/DTK runtime. Inject the already-created backend
+    // directly into the root window after loading; page properties bound to
+    // root.backend then receive the same live QObject instance.
+    QObject *rootObject = engine.rootObjects().constFirst();
+    const bool backendInjected = rootObject->setProperty(
+        "backend", QVariant::fromValue(static_cast<QObject *>(&backend)));
+    if (!backendInjected) {
+        qCritical() << "QML backend injection failed: root window has no backend property";
+        return -1;
+    }
+    qInfo() << "QML backend injected:" << rootObject->property("backend").value<QObject *>()
+            << "expected:" << static_cast<QObject *>(&backend);
+
     // Kick off the initial listing on the worker thread. The full browse
     // catalog is only loaded when the Browse page is opened (see BrowsePage),
     // so startup does not enrich thousands of apps on the GUI thread.
