@@ -16,6 +16,7 @@ set(DTK_NAME_SUFFIX 6)
 
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS
     Core
+    DBus
     Gui
     Network
     Qml
@@ -85,6 +86,7 @@ add_dependencies(dodo-store dodo-store-translations)
 
 target_link_libraries(dodo-store PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::DBus
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Network
     Qt${QT_VERSION_MAJOR}::Qml
