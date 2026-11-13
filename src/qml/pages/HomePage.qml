@@ -6,6 +6,7 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import org.deepin.dtk 1.0
+import org.deepin.dtk.style 1.0 as DS
 import "../components"
 
 Item {
@@ -78,20 +79,63 @@ Item {
             elide: Text.ElideRight
         }
 
-        // Curated categories use the native DTK tab-button style.
-        TabBar {
+        // Curated categories in a single segmented pill.
+        Item {
             Layout.alignment: Qt.AlignHCenter
             visible: !root.searching
-            currentIndex: root.currentIndex
-            onCurrentIndexChanged: {
-                if (root.currentIndex !== currentIndex)
-                    root.currentIndex = currentIndex
+            implicitWidth: root.tabKeys.length * 112
+            width: implicitWidth
+            height: 36
+
+            Rectangle {
+                anchors.fill: parent
+                radius: DS.Style.control.radius
+                color: Qt.alpha(palette.windowText, 0.06)
+                border.width: 1
+                border.color: Qt.alpha(palette.windowText, 0.08)
             }
 
-            Repeater {
-                model: root.tabKeys
-                TabButton {
-                    text: root.tabLabel(modelData)
+            Rectangle {
+                x: root.currentIndex * width
+                width: parent.width / Math.max(1, root.tabKeys.length)
+                height: parent.height
+                radius: DS.Style.control.radius
+                color: palette.button
+                border.width: 1
+                border.color: Qt.alpha(palette.windowText, 0.10)
+
+                Behavior on x {
+                    NumberAnimation {
+                        duration: 180
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            }
+
+            Row {
+                anchors.fill: parent
+
+                Repeater {
+                    model: root.tabKeys
+
+                    Item {
+                        width: parent.width / Math.max(1, root.tabKeys.length)
+                        height: parent.height
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: root.tabLabel(modelData)
+                            color: palette.windowText
+                            opacity: index === root.currentIndex ? 1.0 : 0.72
+                            font: DTK.fontManager.t6
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.currentIndex = index
+                        }
+                    }
                 }
             }
         }
