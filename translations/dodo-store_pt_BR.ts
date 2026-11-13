@@ -575,5 +575,20 @@
         <source>Flathub is not available for search. Configure the Flathub remote in Repositories and try again.</source>
         <translation>O Flathub não está disponível para pesquisa. Configure o repositório Flathub em Repositórios e tente novamente.</translation>
     </message>
+    <message>
+        <location filename="../src/qml/main.qml"/>
+        <source>Search Flathub</source>
+        <translation>Pesquisar no Flathub</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/main.qml"/>
+        <source>Search installed</source>
+        <translation>Pesquisar instalados</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/main.qml"/>
+        <source>Search installations</source>
+        <translation>Pesquisar instalações</translation>
+    </message>
 </context>
 </TS>
