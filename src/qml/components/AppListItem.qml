@@ -34,11 +34,23 @@ Rectangle {
         radius: 8
         color: palette.base
         Image {
+            id: rowIcon
             anchors.fill: parent
             anchors.margins: 6
             source: model.isRuntime ? "qrc:/qml/components/blocks.svg" : model.icon
             fillMode: Image.PreserveAspectFit
-            sourceSize { width: 28; height: 28 }
+            asynchronous: true
+            cache: true
+            sourceSize { width: 64; height: 64 }
+        }
+        Text {
+            anchors.centerIn: parent
+            visible: !model.isRuntime && (!model.icon || rowIcon.status === Image.Error
+                                           || rowIcon.status === Image.Null)
+            text: (model.name || model.appId || "?").substring(0, 1).toUpperCase()
+            font: DTK.fontManager.t6
+            color: palette.windowText
+            opacity: 0.45
         }
     }
 
