@@ -36,7 +36,7 @@ ApplicationWindow {
     property bool storeSettingsReady: false
 
     // The page instances hosted by the right-hand StackView, one per tab.
-    property var pageStack: [null, null, null, null, null]
+    property var pageStack: [null, null, null, null]
 
     // Push a populated AppDetailPage onto the stack for the given AppItem.
     function openDetail(item) {
@@ -44,12 +44,12 @@ ApplicationWindow {
         detail.backClicked.connect(function() { mainStack.pop() })
     }
 
-    // Jump to the Browse tab and apply the search text typed in the title bar.
+    // Keep search within the unified Explore page.
     function applyGlobalSearch(text) {
         while (mainStack.depth > 1)
             mainStack.pop()
-        root.pageIndex = 1
-        browsePage.searchText = text
+        root.pageIndex = 0
+        explorePage.searchText = text
     }
 
     function showPage(index) {
@@ -100,7 +100,7 @@ ApplicationWindow {
         }
         // A "flatpak+https" web link resolved to an app: open its detail page.
         function onOpenAppRequested(appId, branch) {
-            root.showPage(1)
+            root.showPage(0)
             var item = flatpakBackend.findAppItem(appId, branch)
             if (item)
                 root.openDetail(item)
@@ -123,17 +123,8 @@ ApplicationWindow {
 
             IconButton {
                 icon.name: "go-previous"
-                // Also navigates back from a Browse category, so the page does
-                // not need its own back button.
                 visible: mainStack.depth > 1
-                         || (root.pageIndex === 1 && browsePage.appsView
-                             && browsePage.searchText === "")
-                onClicked: {
-                    if (mainStack.depth > 1)
-                        mainStack.pop()
-                    else
-                        browsePage.backToCategories()
-                }
+                onClicked: mainStack.pop()
             }
 
             Item { Layout.fillWidth: true }
@@ -334,8 +325,7 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Home"), iconSource: "qrc:/qml/icons/home.svg", darkIconSource: "qrc:/qml/icons/home-dark.svg" },
-                    { label: qsTr("Browse"), iconSource: "qrc:/qml/icons/browse.svg", darkIconSource: "qrc:/qml/icons/browse-dark.svg" }
+                    { label: qsTr("Explore"), iconSource: "qrc:/qml/icons/browse.svg", darkIconSource: "qrc:/qml/icons/browse-dark.svg" }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
@@ -362,8 +352,8 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Installed"), iconSource: "qrc:/qml/icons/installed.svg", darkIconSource: "qrc:/qml/icons/installed-dark.svg", page: 2 },
-                    { label: qsTr("Updates"), iconSource: "qrc:/qml/icons/updates.svg", darkIconSource: "qrc:/qml/icons/updates-dark.svg", page: 3 }
+                    { label: qsTr("Installed"), iconSource: "qrc:/qml/icons/installed.svg", darkIconSource: "qrc:/qml/icons/installed-dark.svg", page: 1 },
+                    { label: qsTr("Updates"), iconSource: "qrc:/qml/icons/updates.svg", darkIconSource: "qrc:/qml/icons/updates-dark.svg", page: 2 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
@@ -377,7 +367,7 @@ ApplicationWindow {
 
                     Rectangle {
                         id: updatesBadge
-                        visible: modelData.page === 3 && flatpakBackend.applicationUpdateCount > 0
+                        visible: modelData.page === 2 && flatpakBackend.applicationUpdateCount > 0
                         width: Math.max(18, updatesBadgeText.implicitWidth + 8)
                         height: 18
                         radius: 9
@@ -411,7 +401,7 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Remotes"), iconSource: "qrc:/qml/icons/remotes.svg", darkIconSource: "qrc:/qml/icons/remotes-dark.svg", page: 4 }
+                    { label: qsTr("Remotes"), iconSource: "qrc:/qml/icons/remotes.svg", darkIconSource: "qrc:/qml/icons/remotes-dark.svg", page: 3 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
@@ -439,10 +429,7 @@ ApplicationWindow {
                 currentIndex: root.pageIndex
 
                 HomePage {
-                    openDetail: function(item) { root.openDetail(item) }
-                }
-                BrowsePage {
-                    id: browsePage
+                    id: explorePage
                     openDetail: function(item) { root.openDetail(item) }
                 }
                 InstalledPage {
