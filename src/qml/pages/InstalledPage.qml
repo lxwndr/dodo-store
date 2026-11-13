@@ -12,6 +12,7 @@ Item {
     id: root
     property var backend: null
     property var openDetail: null
+    property string searchText: ""
 
     ColumnLayout {
         anchors.fill: parent
@@ -19,8 +20,15 @@ Item {
         spacing: 12
 
         AppFilterProxyModel {
-            id: installedCountModel
+            id: installedModelFilter
             sourceModel: backend.installedModel
+            hideRuntimes: true
+            filterText: root.searchText
+        }
+
+        AppFilterProxyModel {
+            id: installedCountModel
+            sourceModel: installedModelFilter
             hideRuntimes: true
         }
 
@@ -40,6 +48,7 @@ Item {
             model: AppFilterProxyModel {
                 sourceModel: backend.installedModel
                 hideRuntimes: true
+                filterText: root.searchText
             }
             delegate: AppListItem {
                 width: list.width
