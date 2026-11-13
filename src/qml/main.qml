@@ -87,6 +87,21 @@ ApplicationWindow {
                                          storeSettings.apiProxy)
     }
 
+    // Explicitly synchronize the backend with the pages. Some supported
+    // Qt/DTK runtimes do not reliably propagate the root property binding
+    // through the StackView/StackLayout hierarchy.
+    function syncPageBackends() {
+        if (explorePage)
+            explorePage.backend = root.backend
+        if (installedPage)
+            installedPage.backend = root.backend
+        if (updatesPage)
+            updatesPage.backend = root.backend
+    }
+
+    onBackendChanged: syncPageBackends()
+    Component.onCompleted: syncPageBackends()
+
     Connections {
         target: root.backend
         function onOperationFinished(ref, success, error) {
