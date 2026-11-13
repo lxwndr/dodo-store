@@ -31,6 +31,9 @@ ApplicationWindow {
     color: "transparent"
 
     property int pageIndex: 0
+    // Keep the C++ backend on the root context and pass this stable reference
+    // to every page component instead of resolving the context property there.
+    property var backend: flatpakBackend
     // Set once the DConfig-backed settings object is ready; guards the change
     // handlers while DConfig populates it during construction.
     property bool storeSettingsReady: false
@@ -40,7 +43,7 @@ ApplicationWindow {
 
     // Push a populated AppDetailPage onto the stack for the given AppItem.
     function openDetail(item) {
-        var detail = mainStack.push("pages/AppDetailPage.qml", { appItem: item, backend: flatpakBackend })
+        var detail = mainStack.push("pages/AppDetailPage.qml", { appItem: item, backend: root.backend })
         detail.backClicked.connect(function() { mainStack.pop() })
     }
 
@@ -79,13 +82,13 @@ ApplicationWindow {
     // Push the persisted store API settings to the backend. Called on startup
     // and whenever DConfig reports a change.
     function applyStoreSettings() {
-        flatpakBackend.configureStoreApi(storeSettings.apiEnabled,
+        root.backend.configureStoreApi(storeSettings.apiEnabled,
                                          storeSettings.apiBaseUrl,
                                          storeSettings.apiProxy)
     }
 
     Connections {
-        target: flatpakBackend
+        target: root.backend
         function onOperationFinished(ref, success, error) {
             if (success)
                 root.showToast(qsTr("Operation completed: %1").arg(ref))
@@ -113,7 +116,7 @@ ApplicationWindow {
         // A "flatpak+https" web link resolved to an app: open its detail page.
         function onOpenAppRequested(appId, branch) {
             root.showPage(0)
-            var item = flatpakBackend.findAppItem(appId, branch)
+            var item = root.backend.findAppItem(appId, branch)
             if (item)
                 root.openDetail(item)
             else
@@ -379,7 +382,7 @@ ApplicationWindow {
 
                     Rectangle {
                         id: updatesBadge
-                        visible: modelData.page === 2 && flatpakBackend.applicationUpdateCount > 0
+                        visible: modelData.page === 2 && root.backend.applicationUpdateCount > 0
                         width: Math.max(18, updatesBadgeText.implicitWidth + 8)
                         height: 18
                         radius: 9
@@ -391,7 +394,7 @@ ApplicationWindow {
                         Text {
                             id: updatesBadgeText
                             anchors.centerIn: parent
-                            text: flatpakBackend.applicationUpdateCount
+                            text: root.backend.applicationUpdateCount
                             color: "#ffffff"
                             font.pixelSize: 11
                             font.bold: true
@@ -415,17 +418,17 @@ ApplicationWindow {
 
                 HomePage {
                     id: explorePage
-                    backend: flatpakBackend
+                    backend: root.backend
                     openDetail: function(item) { root.openDetail(item) }
                 }
                 InstalledPage {
                     id: installedPage
-                    backend: flatpakBackend
+                    backend: root.backend
                     openDetail: function(item) { root.openDetail(item) }
                 }
                 UpdatesPage {
                     id: updatesPage
-                    backend: flatpakBackend
+                    backend: root.backend
                     openDetail: function(item) { root.openDetail(item) }
                 }
             }
