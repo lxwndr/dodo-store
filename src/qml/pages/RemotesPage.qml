@@ -6,7 +6,6 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import org.deepin.dtk 1.0
-import "../components"
 
 // Remote (repository) management: list the configured Flatpak remotes, enable
 // or disable them, remove them, and add new ones by URL or ".flatpakrepo" file.
@@ -40,10 +39,8 @@ Item {
                 visible: running
             }
 
-            StoreActionButton {
-                implicitWidth: 112
+            Button {
                 text: qsTr("Add remote")
-                actionType: "primary"
                 onClicked: addDialog.open()
             }
         }
@@ -140,17 +137,13 @@ Item {
                         onClicked: flatpakBackend.setRemoteEnabled(modelData.name, checked)
                     }
 
-                    StoreActionButton {
-                        implicitWidth: 88
+                    Button {
                         text: qsTr("Edit")
-                        actionType: "neutral"
                         onClicked: editDialog.load(modelData)
                     }
 
-                    StoreActionButton {
-                        implicitWidth: 96
+                    Button {
                         text: qsTr("Remove")
-                        actionType: "neutral"
                         onClicked: {
                             removeDialog.remoteName = modelData.name
                             removeDialog.remoteTitle = root.remoteLabel(modelData)
