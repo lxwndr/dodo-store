@@ -249,6 +249,8 @@ private:
 
     QStringList m_remotes;
     QVariantList m_remotesInfo;
+    // Prevent repeated automatic setup attempts during this application run.
+    bool m_flathubBootstrapAttempted = false;
     QString m_currentRemote;
     QString m_loadedBrowseRemote;
     bool m_busy = false;
