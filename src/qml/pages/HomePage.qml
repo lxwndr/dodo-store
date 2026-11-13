@@ -11,6 +11,7 @@ import "../components"
 
 Item {
     id: root
+    property var backend: null
     property var openDetail: null
     property string searchText: ""
     property string searchError: ""
@@ -20,13 +21,13 @@ Item {
         if (!searching) {
             searchError = ""
             flathubSearchRequested = false
-            flatpakBackend.searchBrowse("")
+            backend.searchBrowse("")
             return
         }
 
         var flathub = null
-        for (var i = 0; i < flatpakBackend.remotesInfo.length; ++i) {
-            var remote = flatpakBackend.remotesInfo[i]
+        for (var i = 0; i < backend.remotesInfo.length; ++i) {
+            var remote = backend.remotesInfo[i]
             if (remote.name === "flathub") {
                 flathub = remote
                 break
@@ -36,25 +37,25 @@ Item {
         if (!flathub || flathub.disabled || flathub.noEnumerate) {
             searchError = qsTr("Flathub is not available for search. Configure the Flathub remote in Repositories and try again.")
             flathubSearchRequested = false
-            flatpakBackend.searchBrowse("")
+            backend.searchBrowse("")
             return
         }
 
         searchError = ""
         // Search only the Flathub catalog. While it is loading, the view hides
         // any results left over from a previously selected remote.
-        if (flatpakBackend.currentRemote !== "flathub")
-            flatpakBackend.currentRemote = "flathub"
+        if (backend.currentRemote !== "flathub")
+            backend.currentRemote = "flathub"
         if (!flathubSearchRequested) {
             flathubSearchRequested = true
-            flatpakBackend.refreshBrowse()
+            backend.refreshBrowse()
         }
-        flatpakBackend.searchBrowse(searchText.trim())
+        backend.searchBrowse(searchText.trim())
     }
 
     // With the store API enabled Home offers four curated lists; offline it
     // falls back to the two lists that can be derived locally.
-    readonly property bool apiEnabled: flatpakBackend.storeApiEnabled
+    readonly property bool apiEnabled: backend.storeApiEnabled
     readonly property var tabKeys: apiEnabled
         ? ["trending", "popular", "new", "updated"]
         : ["popular", "updated"]
@@ -65,12 +66,12 @@ Item {
     readonly property var currentModel: tabModel(currentKey)
     readonly property string currentStatus: tabStatus(currentKey)
     readonly property bool searching: searchText.trim().length > 0
-    readonly property var displayedModel: searching ? flatpakBackend.browseListModel : currentModel
+    readonly property var displayedModel: searching ? backend.browseListModel : currentModel
 
     onSearchTextChanged: updateSearch()
 
     Connections {
-        target: flatpakBackend
+        target: backend
         function onRemotesInfoChanged() {
             root.updateSearch()
         }
@@ -88,20 +89,20 @@ Item {
 
     function tabModel(key) {
         switch (key) {
-        case "trending": return flatpakBackend.trendingModel
-        case "popular": return flatpakBackend.popularModel
-        case "new": return flatpakBackend.newModel
-        case "updated": return flatpakBackend.updatedModel
+        case "trending": return backend.trendingModel
+        case "popular": return backend.popularModel
+        case "new": return backend.newModel
+        case "updated": return backend.updatedModel
         }
         return null
     }
 
     function tabStatus(key) {
         switch (key) {
-        case "trending": return flatpakBackend.trendingStatus
-        case "popular": return flatpakBackend.popularStatus
-        case "new": return flatpakBackend.newStatus
-        case "updated": return flatpakBackend.updatedStatus
+        case "trending": return backend.trendingStatus
+        case "popular": return backend.popularStatus
+        case "new": return backend.newStatus
+        case "updated": return backend.updatedStatus
         }
         return ""
     }
@@ -193,7 +194,7 @@ Item {
                 cellWidth: 200
                 cellHeight: 190
                 visible: root.displayedModel && root.displayedModel.count > 0
-                         && (!root.searching || !flatpakBackend.busy)
+                         && (!root.searching || !backend.busy)
 
                 model: root.displayedModel
 
@@ -210,7 +211,7 @@ Item {
             BusyIndicator {
                 anchors.centerIn: parent
                 running: root.searching
-                         ? flatpakBackend.busy && (!root.displayedModel || root.displayedModel.count === 0)
+                         ? backend.busy && (!root.displayedModel || root.displayedModel.count === 0)
                          : root.currentStatus === "loading"
                            && root.currentModel && root.currentModel.count === 0
                 visible: running
@@ -239,7 +240,7 @@ Item {
             Label {
                 anchors.centerIn: parent
                 visible: root.searching && root.searchError.length === 0
-                         ? !flatpakBackend.busy && (!root.displayedModel || root.displayedModel.count === 0)
+                         ? !backend.busy && (!root.displayedModel || root.displayedModel.count === 0)
                          : !root.searching && root.currentModel && root.currentModel.count === 0
                            && (root.currentStatus === "ok" || root.currentStatus === "stale")
                 text: root.searching ? qsTr("No applications found.") : qsTr("No applications")
