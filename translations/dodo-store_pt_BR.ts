@@ -541,13 +541,8 @@
     </message>
     <message>
         <location filename="../src/qml/main.qml" line="316"/>
-        <source>Home</source>
-        <translation>Página Inicial</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/main.qml" line="317"/>
-        <source>Browse</source>
-        <translation>Navegar</translation>
+        <source>Explore</source>
+        <translation>Explorar</translation>
     </message>
     <message>
         <location filename="../src/qml/main.qml" line="333"/>
