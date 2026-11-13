@@ -36,7 +36,7 @@ ApplicationWindow {
     property bool storeSettingsReady: false
 
     // The page instances hosted by the right-hand StackView, one per tab.
-    property var pageStack: [null, null, null, null]
+    property var pageStack: [null, null, null]
 
     // Push a populated AppDetailPage onto the stack for the given AppItem.
     function openDetail(item) {
@@ -388,33 +388,6 @@ ApplicationWindow {
                 }
             }
 
-            Item { Layout.preferredHeight: 20 }
-
-            Label {
-                text: qsTr("Settings")
-                font: DTK.fontManager.t5
-                color: palette.windowText
-                opacity: 0.7
-                Layout.leftMargin: 10
-                Layout.bottomMargin: 4
-            }
-
-            Repeater {
-                model: [
-                    { label: qsTr("Remotes"), iconSource: "qrc:/qml/icons/remotes.svg", darkIconSource: "qrc:/qml/icons/remotes-dark.svg", page: 3 }
-                ]
-                delegate: ItemDelegate {
-                    Layout.fillWidth: true
-                    icon.source: DTK.themeType === ApplicationHelper.LightType ? modelData.iconSource : modelData.darkIconSource
-                    icon.color: palette.windowText
-                    icon.width: 20
-                    icon.height: 20
-                    checked: root.pageIndex === modelData.page
-                    text: modelData.label
-                    onClicked: root.showPage(modelData.page)
-                }
-            }
-
             Item { Layout.fillHeight: true }
         }
 
@@ -437,8 +410,6 @@ ApplicationWindow {
                 }
                 UpdatesPage {
                     openDetail: function(item) { root.openDetail(item) }
-                }
-                RemotesPage {
                 }
             }
         }
