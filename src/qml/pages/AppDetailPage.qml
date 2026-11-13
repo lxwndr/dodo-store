@@ -15,6 +15,7 @@ import org.deepin.dtk 1.0
 // content) is deliberately omitted.
 Item {
     id: root
+    property var backend: null
     // AppItem instance (populated by the openDetail callback in main.qml).
     property var appItem: null
     signal backClicked()
@@ -55,11 +56,11 @@ Item {
     // model count so it is re-evaluated (and re-queries the backend) every
     // time the lists are refreshed.
     readonly property bool installed: appAppId.length > 0
-        && flatpakBackend.installedModel.count >= 0
-        && flatpakBackend.isInstalled(refKey())
+        && backend.installedModel.count >= 0
+        && backend.isInstalled(refKey())
     readonly property bool updateAvailable: appAppId.length > 0
-        && flatpakBackend.updatesModel.count >= 0
-        && flatpakBackend.hasUpdate(refKey())
+        && backend.updatesModel.count >= 0
+        && backend.hasUpdate(refKey())
 
     function snapshot() {
         if (!appItem)
@@ -94,7 +95,7 @@ Item {
     function refreshFromBackend() {
         if (appAppId.length === 0)
             return
-        var live = flatpakBackend.findAppByKey(refKey())
+        var live = backend.findAppByKey(refKey())
         if (live && live !== appItem)
             appItem = live          // triggers onAppItemChanged -> snapshot()
         else if (live)
@@ -102,7 +103,7 @@ Item {
     }
 
     Connections {
-        target: flatpakBackend
+        target: backend
         function onBrowseLoaded() { root.refreshFromBackend() }
         function onInstalledLoaded() { root.refreshFromBackend() }
         function onUpdatesLoaded() { root.refreshFromBackend() }
@@ -309,13 +310,13 @@ Item {
                         // Primary action: Install, or Update when one is available.
                         Button {
                             visible: !root.installed || root.updateAvailable
-                            enabled: !flatpakBackend.busy
+                            enabled: !backend.busy
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
                             onClicked: {
                                 if (root.updateAvailable)
-                                    flatpakBackend.updateApp(root.appAppId, root.appBranch, root.appArch)
+                                    backend.updateApp(root.appAppId, root.appBranch, root.appArch)
                                 else
-                                    flatpakBackend.installApp(root.appAppId, root.appRemote,
+                                    backend.installApp(root.appAppId, root.appRemote,
                                                               root.appBranch, root.appArch)
                             }
                         }
@@ -323,25 +324,25 @@ Item {
                         // Launch the installed app without changing its install state.
                         Button {
                             visible: root.installed
-                            enabled: !flatpakBackend.busy
+                            enabled: !backend.busy
                             text: qsTr("Open")
-                            onClicked: flatpakBackend.launchApp(root.appAppId,
+                            onClicked: backend.launchApp(root.appAppId,
                                                                 root.appBranch, root.appArch)
                         }
 
                         Button {
                             visible: root.installed
-                            enabled: !flatpakBackend.busy
+                            enabled: !backend.busy
                             text: qsTr("Uninstall")
-                            onClicked: flatpakBackend.uninstallApp(root.appAppId,
+                            onClicked: backend.uninstallApp(root.appAppId,
                                                                    root.appBranch, root.appArch)
                         }
                     }
 
                     Text {
                         Layout.alignment: Qt.AlignRight
-                        visible: flatpakBackend.busy
-                        text: Math.round(flatpakBackend.progress * 100) + "%"
+                        visible: backend.busy
+                        text: Math.round(backend.progress * 100) + "%"
                         font: DTK.fontManager.t9
                         color: palette.windowText
                         opacity: 0.6
@@ -353,25 +354,25 @@ Item {
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 4
-                visible: flatpakBackend.busy
+                visible: backend.busy
                 ProgressBar {
                     Layout.fillWidth: true
                     from: 0
                     to: 100
-                    value: flatpakBackend.progress * 100
+                    value: backend.progress * 100
                 }
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
                         Layout.fillWidth: true
-                        text: flatpakBackend.status
+                        text: backend.status
                         font: DTK.fontManager.t9
                         color: palette.windowText
                         elide: Text.ElideRight
                     }
                     Button {
                         text: qsTr("Cancel")
-                        onClicked: flatpakBackend.cancelOperation()
+                        onClicked: backend.cancelOperation()
                     }
                 }
             }
