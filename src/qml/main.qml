@@ -46,11 +46,23 @@ ApplicationWindow {
 
     // Keep search within the unified Explore page.
     function applyGlobalSearch(text) {
-        while (mainStack.depth > 1)
-            mainStack.pop()
-        root.pageIndex = 0
-        explorePage.searchText = text
+        if (root.pageIndex === 0)
+            explorePage.searchText = text
+        else if (root.pageIndex === 1)
+            installedPage.searchText = text
+        else if (root.pageIndex === 2)
+            updatesPage.searchText = text
     }
+
+    readonly property string searchPlaceholder: {
+        if (root.pageIndex === 0)
+            return qsTr("Search Flathub")
+        if (root.pageIndex === 1)
+            return qsTr("Search installed")
+        return qsTr("Search installations")
+    }
+
+    onPageIndexChanged: applyGlobalSearch(searchField.text)
 
     function showPage(index) {
         // Popping any open detail pages when switching tabs.
@@ -144,7 +156,7 @@ ApplicationWindow {
                 id: searchField
                 Layout.preferredWidth: 320
                 Layout.alignment: Qt.AlignCenter
-                placeholder: qsTr("Search applications")
+                placeholder: root.searchPlaceholder
                 onTextChanged: root.applyGlobalSearch(text)
             }
 
@@ -407,10 +419,12 @@ ApplicationWindow {
                     openDetail: function(item) { root.openDetail(item) }
                 }
                 InstalledPage {
+                    id: installedPage
                     backend: flatpakBackend
                     openDetail: function(item) { root.openDetail(item) }
                 }
                 UpdatesPage {
+                    id: updatesPage
                     backend: flatpakBackend
                     openDetail: function(item) { root.openDetail(item) }
                 }
