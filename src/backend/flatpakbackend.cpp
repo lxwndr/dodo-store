@@ -732,6 +732,24 @@ void FlatpakBackend::onRemotesReady(const QVariantList &remotes)
 {
     m_remotesInfo = remotes;
 
+    // Provision Flathub for this user on first startup when it is not already
+    // configured. Existing remotes (including disabled ones) are left untouched.
+    bool hasFlathub = false;
+    for (const QVariant &entry : remotes) {
+        if (entry.toMap().value(QStringLiteral("name")).toString()
+            == QLatin1String("flathub")) {
+            hasFlathub = true;
+            break;
+        }
+    }
+    if (!hasFlathub && !m_flathubBootstrapAttempted) {
+        m_flathubBootstrapAttempted = true;
+        qInfo() << "flatpak: Flathub is not configured; adding it for the current user";
+        addRemote(QStringLiteral("flathub"),
+                  QStringLiteral("https://dl.flathub.org/repo/flathub.flatpakrepo"),
+                  true);
+    }
+
     QStringList names;
     names.reserve(remotes.size());
     for (const QVariant &entry : remotes) {
@@ -763,6 +781,9 @@ void FlatpakBackend::onRemoteOperationFinished(bool success, const QString &acti
         // Remote changes may invalidate the cached catalog.
         m_loadedBrowseRemote.clear();
         QMetaObject::invokeMethod(m_worker, "loadRemotes", Qt::QueuedConnection);
+    } else if (action == QLatin1String("add")
+               && name == QLatin1String("flathub")) {
+        qWarning() << "flatpak: automatic Flathub setup failed:" << error;
     }
     Q_EMIT remoteOperationFinished(success, action, name, error);
 }
