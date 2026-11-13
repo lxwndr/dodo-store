@@ -254,12 +254,23 @@ Item {
                     radius: 20
                     color: palette.base
                     Image {
+                        id: detailIcon
                         anchors.fill: parent
                         anchors.margins: 12
                         source: root.iconUrl
                         fillMode: Image.PreserveAspectFit
                         asynchronous: true
-                        sourceSize { width: 96; height: 96 }
+                        cache: true
+                        sourceSize { width: 192; height: 192 }
+                    }
+                    Text {
+                        anchors.centerIn: parent
+                        visible: !root.iconUrl || detailIcon.status === Image.Error
+                                 || detailIcon.status === Image.Null
+                        text: (root.appName || root.appAppId || "?").substring(0, 1).toUpperCase()
+                        font: DTK.fontManager.t1
+                        color: palette.windowText
+                        opacity: 0.45
                     }
                 }
 
