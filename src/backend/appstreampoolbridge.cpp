@@ -9,6 +9,7 @@
 #include <QHash>
 #include <QUrl>
 #include <QDateTime>
+#include <QLocale>
 #include <algorithm>
 
 #include <AppStreamQt/component.h>
@@ -120,7 +121,7 @@ AppStreamPoolBridge::AppStreamPoolBridge(QObject *parent)
 {
     // Only flatpak appstream metadata is relevant for this store.
     m_pool.setFlags(AppStream::Pool::FlagLoadFlatpak);
-    m_pool.setLocale(QStringLiteral("zh_CN"));
+    m_pool.setLocale(QLocale::system().name());
 }
 
 void AppStreamPoolBridge::startLoading()
@@ -209,9 +210,18 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
         return false;
 
     const QString appId = item->appId();
-    const AppStream::ComponentBox box = m_pool.componentsById(appId);
+
+    // AppStream component IDs do not always match the Flatpak ref ID exactly.
+    // Desktop applications are commonly published with a ".desktop" suffix.
+    AppStream::ComponentBox box = m_pool.componentsById(appId);
     if (box.size() == 0)
+        box = m_pool.componentsById(appId + QStringLiteral(".desktop"));
+    if (box.size() == 0 && appId.endsWith(QStringLiteral(".desktop")))
+        box = m_pool.componentsById(appId.chopped(8));
+    if (box.size() == 0) {
+        qDebug() << "AppStream metadata not found for Flatpak app:" << appId;
         return false;
+    }
 
     const AppStream::Component comp = *box.begin();
 
