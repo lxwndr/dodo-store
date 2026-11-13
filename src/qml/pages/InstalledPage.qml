@@ -17,14 +17,10 @@ Item {
         anchors.margins: 16
         spacing: 12
 
-        RowLayout {
+        LineEdit {
+            id: searchField
             Layout.fillWidth: true
-            spacing: 8
-            LineEdit {
-                id: searchField
-                Layout.fillWidth: true
-                placeholderText: qsTr("Search installed applications...")
-            }
+            placeholderText: qsTr("Search installed applications...")
         }
 
         AppFilterProxyModel {
