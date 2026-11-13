@@ -34,6 +34,7 @@ Rectangle {
                 anchors.fill: parent
                 anchors.margins: 8
                 source: model.icon
+                onStatusChanged: if (status === Image.Error) console.warn("icon: failed to load", source, "for", model.appId)
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 cache: true
