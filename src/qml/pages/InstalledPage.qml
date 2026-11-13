@@ -10,6 +10,7 @@ import "../components"
 
 Item {
     id: root
+    property var backend: null
     property var openDetail: null
 
     ColumnLayout {
@@ -19,7 +20,7 @@ Item {
 
         AppFilterProxyModel {
             id: installedCountModel
-            sourceModel: flatpakBackend.installedModel
+            sourceModel: backend.installedModel
             hideRuntimes: true
         }
 
@@ -37,7 +38,7 @@ Item {
             clip: true
             spacing: 4
             model: AppFilterProxyModel {
-                sourceModel: flatpakBackend.installedModel
+                sourceModel: backend.installedModel
                 hideRuntimes: true
             }
             delegate: AppListItem {
@@ -47,12 +48,12 @@ Item {
                     if (root.openDetail)
                         root.openDetail(model.item)
                 }
-                onActionClicked: flatpakBackend.uninstallApp(model.appId, model.branch, model.arch)
+                onActionClicked: backend.uninstallApp(model.appId, model.branch, model.arch)
             }
         }
 
         Label {
-            visible: list.count === 0 && !flatpakBackend.busy
+            visible: list.count === 0 && !backend.busy
             Layout.alignment: Qt.AlignHCenter
             text: qsTr("Nothing installed yet.")
             color: palette.windowText
