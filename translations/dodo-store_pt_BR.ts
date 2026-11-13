@@ -570,5 +570,10 @@
         <source>Remotes</source>
         <translation>Repositórios</translation>
     </message>
+    <message>
+        <location filename="../src/qml/pages/HomePage.qml"/>
+        <source>Flathub is not available for search. Configure the Flathub remote in Repositories and try again.</source>
+        <translation>O Flathub não está disponível para pesquisa. Configure o repositório Flathub em Repositórios e tente novamente.</translation>
+    </message>
 </context>
 </TS>
