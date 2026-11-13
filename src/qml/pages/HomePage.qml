@@ -11,6 +11,7 @@ import "../components"
 Item {
     id: root
     property var openDetail: null
+    property string searchText: ""
 
     // With the store API enabled Home offers four curated lists; offline it
     // falls back to the two lists that can be derived locally.
@@ -24,6 +25,13 @@ Item {
         tabKeys.length > 0 ? tabKeys[Math.min(currentIndex, tabKeys.length - 1)] : ""
     readonly property var currentModel: tabModel(currentKey)
     readonly property string currentStatus: tabStatus(currentKey)
+    readonly property bool searching: searchText.trim().length > 0
+    readonly property var displayedModel: searching ? flatpakBackend.browseListModel : currentModel
+
+    onSearchTextChanged: {
+        if (searching)
+            flatpakBackend.searchBrowse(searchText.trim())
+    }
 
     function tabLabel(key) {
         switch (key) {
@@ -62,28 +70,18 @@ Item {
         anchors.margins: 24
         spacing: 16
 
-        RowLayout {
+        Text {
             Layout.fillWidth: true
-            spacing: 8
-
-            Text {
-                Layout.fillWidth: true
-                text: qsTr("Discover applications")
-                font: DTK.fontManager.t4
-                color: palette.windowText
-                elide: Text.ElideRight
-            }
-
-            Button {
-                text: qsTr("Refresh")
-                enabled: !flatpakBackend.busy
-                onClicked: flatpakBackend.refreshHome()
-            }
+            text: root.searching ? qsTr("Search results") : qsTr("Discover applications")
+            font: DTK.fontManager.t4
+            color: palette.windowText
+            elide: Text.ElideRight
         }
 
         // Curated category tabs.
         Row {
             Layout.alignment: Qt.AlignHCenter
+            visible: !root.searching
             spacing: 4
 
             Repeater {
@@ -130,9 +128,9 @@ Item {
                 clip: true
                 cellWidth: 200
                 cellHeight: 190
-                visible: root.currentModel && root.currentModel.count > 0
+                visible: root.displayedModel && root.displayedModel.count > 0
 
-                model: root.currentModel
+                model: root.displayedModel
 
                 delegate: AppCard {
                     width: grid.cellWidth - 16
@@ -146,14 +144,16 @@ Item {
 
             BusyIndicator {
                 anchors.centerIn: parent
-                running: root.currentStatus === "loading"
-                         && root.currentModel && root.currentModel.count === 0
+                running: root.searching
+                         ? flatpakBackend.busy && (!root.displayedModel || root.displayedModel.count === 0)
+                         : root.currentStatus === "loading"
+                           && root.currentModel && root.currentModel.count === 0
                 visible: running
             }
 
             Label {
                 anchors.centerIn: parent
-                visible: root.currentModel && root.currentModel.count === 0
+                visible: !root.searching && root.currentModel && root.currentModel.count === 0
                          && root.currentStatus === "error"
                 text: qsTr("Failed to load. Check the store API settings and retry.")
                 color: palette.windowText
@@ -162,9 +162,11 @@ Item {
 
             Label {
                 anchors.centerIn: parent
-                visible: root.currentModel && root.currentModel.count === 0
-                         && (root.currentStatus === "ok" || root.currentStatus === "stale")
-                text: qsTr("No applications")
+                visible: root.searching
+                         ? !flatpakBackend.busy && (!root.displayedModel || root.displayedModel.count === 0)
+                         : root.currentModel && root.currentModel.count === 0
+                           && (root.currentStatus === "ok" || root.currentStatus === "stale")
+                text: root.searching ? qsTr("No applications found.") : qsTr("No applications")
                 color: palette.windowText
                 opacity: 0.75
             }

@@ -17,18 +17,10 @@ Item {
         anchors.margins: 16
         spacing: 12
 
-        RowLayout {
+        LineEdit {
+            id: searchField
             Layout.fillWidth: true
-            spacing: 8
-            LineEdit {
-                id: searchField
-                Layout.fillWidth: true
-                placeholderText: qsTr("Search installed applications...")
-            }
-            Button {
-                text: qsTr("Refresh")
-                onClicked: flatpakBackend.refreshInstalled()
-            }
+            placeholderText: qsTr("Search installed applications...")
         }
 
         AppFilterProxyModel {

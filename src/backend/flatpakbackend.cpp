@@ -68,6 +68,10 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
     connect(m_thread, &QThread::finished, m_worker, &QObject::deleteLater);
     m_thread->start();
 
+    // Populate Installed, Updates and Remotes automatically on startup.
+    // The same refresh is triggered again after every Flatpak transaction.
+    refreshInstalled();
+
     connect(m_appstream, &AppStreamPoolBridge::loadFinished, this, &FlatpakBackend::onAppStreamLoaded);
     m_appstream->startLoading();
 }
