@@ -6,12 +6,14 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import org.deepin.dtk 1.0
+import dodo.store 1.0
 import "../components"
 
 Item {
     id: root
     property var backend: null
     property var openDetail: null
+    property string searchText: ""
 
     // The model holds application updates first, then runtime updates. This
     // keeps the header counts and the "Update All" state without a second model.
@@ -62,7 +64,10 @@ Item {
             Layout.fillHeight: true
             clip: true
             spacing: 4
-            model: backend.updatesModel
+            model: AppFilterProxyModel {
+                sourceModel: backend.updatesModel
+                filterText: root.searchText
+            }
 
             section.property: "isRuntime"
             section.delegate: Label {
