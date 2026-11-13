@@ -5,7 +5,6 @@
         <file>qml/pages/InstalledPage.qml</file>
         <file>qml/pages/UpdatesPage.qml</file>
         <file>qml/pages/AppDetailPage.qml</file>
-        <file>qml/pages/RemotesPage.qml</file>
         <file>qml/components/AppCard.qml</file>
         <file>qml/components/AppListItem.qml</file>
         <file>qml/components/blocks.svg</file>
