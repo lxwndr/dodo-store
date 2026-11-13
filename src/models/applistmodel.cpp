@@ -82,10 +82,40 @@ QHash<int, QByteArray> AppListModel::roleNames() const
     };
 }
 
+void AppListModel::watchItem(AppItem *item)
+{
+    if (!item)
+        return;
+
+    const auto notify = [this, item] {
+        const int row = m_items.indexOf(item);
+        if (row >= 0)
+            Q_EMIT dataChanged(index(row, 0), index(row, 0));
+    };
+
+    connect(item, &AppItem::nameChanged, this, notify);
+    connect(item, &AppItem::summaryChanged, this, notify);
+    connect(item, &AppItem::descriptionChanged, this, notify);
+    connect(item, &AppItem::versionChanged, this, notify);
+    connect(item, &AppItem::runtimeChanged, this, notify);
+    connect(item, &AppItem::licenseChanged, this, notify);
+    connect(item, &AppItem::developerChanged, this, notify);
+    connect(item, &AppItem::homepageChanged, this, notify);
+    connect(item, &AppItem::categoryChanged, this, notify);
+    connect(item, &AppItem::releaseNotesChanged, this, notify);
+    connect(item, &AppItem::iconChanged, this, notify);
+    connect(item, &AppItem::screenshotsChanged, this, notify);
+    connect(item, &AppItem::installedSizeChanged, this, notify);
+    connect(item, &AppItem::downloadSizeChanged, this, notify);
+    connect(item, &AppItem::installedChanged, this, notify);
+    connect(item, &AppItem::updateAvailableChanged, this, notify);
+}
+
 void AppListModel::appendItem(AppItem *item)
 {
     beginInsertRows(QModelIndex(), m_items.size(), m_items.size());
     m_items.append(item);
+    watchItem(item);
     endInsertRows();
 }
 
@@ -97,6 +127,8 @@ void AppListModel::appendItems(const QList<AppItem *> &items)
     // 4000-row catalog floods the proxies and views on the GUI thread.
     beginInsertRows(QModelIndex(), m_items.size(), m_items.size() + items.size() - 1);
     m_items.append(items);
+    for (AppItem *item : items)
+        watchItem(item);
     endInsertRows();
 }
 
