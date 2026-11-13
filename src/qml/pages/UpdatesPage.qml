@@ -10,12 +10,13 @@ import "../components"
 
 Item {
     id: root
+    property var backend: null
     property var openDetail: null
 
     // The model holds application updates first, then runtime updates. This
     // keeps the header counts and the "Update All" state without a second model.
     readonly property int runtimeUpdateCount:
-        Math.max(0, flatpakBackend.updatesModel.count - flatpakBackend.applicationUpdateCount)
+        Math.max(0, backend.updatesModel.count - backend.applicationUpdateCount)
 
     ColumnLayout {
         anchors.fill: parent
@@ -27,7 +28,7 @@ Item {
             spacing: 8
             Label {
                 Layout.fillWidth: true
-                text: qsTr("%1 application updates").arg(flatpakBackend.applicationUpdateCount)
+                text: qsTr("%1 application updates").arg(backend.applicationUpdateCount)
                       + (root.runtimeUpdateCount > 0
                          ? qsTr(" · %1 runtime updates").arg(root.runtimeUpdateCount)
                          : "")
@@ -36,19 +37,19 @@ Item {
             }
             Button {
                 text: qsTr("Update All")
-                enabled: flatpakBackend.updatesModel.count > 0 && !flatpakBackend.busy
-                onClicked: flatpakBackend.updateAll()
+                enabled: backend.updatesModel.count > 0 && !backend.busy
+                onClicked: backend.updateAll()
             }
             Button {
                 text: qsTr("Cancel")
-                visible: flatpakBackend.busy
-                onClicked: flatpakBackend.cancelOperation()
+                visible: backend.busy
+                onClicked: backend.cancelOperation()
             }
         }
 
         BusyIndicator {
             Layout.alignment: Qt.AlignHCenter
-            running: flatpakBackend.busy
+            running: backend.busy
             visible: running
         }
 
@@ -61,7 +62,7 @@ Item {
             Layout.fillHeight: true
             clip: true
             spacing: 4
-            model: flatpakBackend.updatesModel
+            model: backend.updatesModel
 
             section.property: "isRuntime"
             section.delegate: Label {
@@ -89,13 +90,13 @@ Item {
                 }
                 onActionClicked: {
                     if (!model.isRuntime)
-                        flatpakBackend.updateApp(model.appId, model.branch, model.arch)
+                        backend.updateApp(model.appId, model.branch, model.arch)
                 }
             }
         }
 
         Label {
-            visible: flatpakBackend.updatesModel.count === 0 && !flatpakBackend.busy
+            visible: backend.updatesModel.count === 0 && !backend.busy
             Layout.alignment: Qt.AlignHCenter
             text: qsTr("You're up to date.")
             color: palette.windowText
