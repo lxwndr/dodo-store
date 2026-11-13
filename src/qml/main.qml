@@ -41,9 +41,31 @@ ApplicationWindow {
     // The page instances hosted by the right-hand StackView, one per tab.
     property var pageStack: [null, null, null]
 
+    Component {
+        id: detailPageComponent
+        AppDetailPage { }
+    }
+
     // Push a populated AppDetailPage onto the stack for the given AppItem.
     function openDetail(item) {
-        var detail = mainStack.push("pages/AppDetailPage.qml", { appItem: item, backend: root.backend })
+        if (!item || !item.appId) {
+            console.warn("navigation: cannot open app details; invalid AppItem", item)
+            return
+        }
+        if (!root.backend) {
+            console.warn("navigation: cannot open app details; Flatpak backend is unavailable")
+            return
+        }
+
+        console.info("navigation: opening app details", item.appId, item.branch, item.remote)
+        var detail = mainStack.push(detailPageComponent, {
+            appItem: item,
+            backend: root.backend
+        })
+        if (!detail) {
+            console.warn("navigation: StackView did not create AppDetailPage for", item.appId)
+            return
+        }
         detail.backClicked.connect(function() { mainStack.pop() })
     }
 
