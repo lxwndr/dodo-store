@@ -17,12 +17,6 @@ Item {
         anchors.margins: 16
         spacing: 12
 
-        LineEdit {
-            id: searchField
-            Layout.fillWidth: true
-            placeholderText: qsTr("Search installed applications...")
-        }
-
         AppFilterProxyModel {
             id: installedCountModel
             sourceModel: flatpakBackend.installedModel
@@ -44,7 +38,6 @@ Item {
             spacing: 4
             model: AppFilterProxyModel {
                 sourceModel: flatpakBackend.installedModel
-                filterText: searchField.text
                 hideRuntimes: true
             }
             delegate: AppListItem {
