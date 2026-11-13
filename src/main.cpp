@@ -14,12 +14,40 @@
 #include <QLocalSocket>
 #include <QStandardPaths>
 #include <QStringList>
+#include <QDBusConnection>
+#include <QDBusMessage>
 
 #include <DLog>
 #include <DGuiApplicationHelper>
 
 #include "backend/flatpakbackend.h"
 #include "models/appfilterproxymodel.h"
+
+class NotificationService : public QObject
+{
+    Q_OBJECT
+public:
+    using QObject::QObject;
+
+    Q_INVOKABLE void notify(const QString &title, const QString &body)
+    {
+        QDBusMessage message = QDBusMessage::createMethodCall(
+            QStringLiteral("org.freedesktop.Notifications"),
+            QStringLiteral("/org/freedesktop/Notifications"),
+            QStringLiteral("org.freedesktop.Notifications"),
+            QStringLiteral("Notify"));
+        message << QStringLiteral("Dodo Store")
+                << uint(0)
+                << QStringLiteral("dodo-store")
+                << title
+                << body
+                << QStringList()
+                << QVariantMap()
+                << 5000;
+
+        QDBusConnection::sessionBus().asyncCall(message);
+    }
+};
 
 namespace {
 
@@ -103,7 +131,9 @@ int main(int argc, char *argv[])
 
     // The single backend instance; QML talks to this object exclusively.
     FlatpakBackend backend;
+    NotificationService notifications;
     engine.rootContext()->setContextProperty("flatpakBackend", &backend);
+    engine.rootContext()->setContextProperty("notificationService", &notifications);
 
     QObject::connect(&server, &QLocalServer::newConnection, &app, [&server, &backend] {
         while (QLocalSocket *socket = server.nextPendingConnection()) {
