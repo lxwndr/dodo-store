@@ -82,11 +82,6 @@ Item {
                 elide: Text.ElideRight
             }
 
-            Button {
-                text: qsTr("Refresh")
-                enabled: !flatpakBackend.busy
-                onClicked: root.searching ? flatpakBackend.refreshBrowse() : flatpakBackend.refreshHome()
-            }
         }
 
         // Curated category tabs.
