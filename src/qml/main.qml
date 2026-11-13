@@ -40,7 +40,7 @@ ApplicationWindow {
 
     // Push a populated AppDetailPage onto the stack for the given AppItem.
     function openDetail(item) {
-        var detail = mainStack.push("pages/AppDetailPage.qml", { appItem: item })
+        var detail = mainStack.push("pages/AppDetailPage.qml", { appItem: item, backend: flatpakBackend })
         detail.backClicked.connect(function() { mainStack.pop() })
     }
 
@@ -403,12 +403,15 @@ ApplicationWindow {
 
                 HomePage {
                     id: explorePage
+                    backend: flatpakBackend
                     openDetail: function(item) { root.openDetail(item) }
                 }
                 InstalledPage {
+                    backend: flatpakBackend
                     openDetail: function(item) { root.openDetail(item) }
                 }
                 UpdatesPage {
+                    backend: flatpakBackend
                     openDetail: function(item) { root.openDetail(item) }
                 }
             }
