@@ -258,6 +258,7 @@ Item {
                         anchors.fill: parent
                         anchors.margins: 12
                         source: root.iconUrl
+                        onStatusChanged: if (status === Image.Error) console.warn("detail icon: failed to load", source, "for", root.appAppId)
                         fillMode: Image.PreserveAspectFit
                         asynchronous: true
                         cache: true
