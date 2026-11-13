@@ -33,13 +33,17 @@ Item {
                 font: DTK.fontManager.t8
                 color: palette.windowText
             }
-            Button {
+            StoreActionButton {
+                implicitWidth: 120
                 text: qsTr("Update All")
+                actionType: "update"
                 enabled: flatpakBackend.updatesModel.count > 0 && !flatpakBackend.busy
                 onClicked: flatpakBackend.updateAll()
             }
-            Button {
+            StoreActionButton {
+                implicitWidth: 96
                 text: qsTr("Cancel")
+                actionType: "neutral"
                 visible: flatpakBackend.busy
                 onClicked: flatpakBackend.cancelOperation()
             }

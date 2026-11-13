@@ -373,8 +373,10 @@ Item {
                         color: palette.windowText
                         elide: Text.ElideRight
                     }
-                    Button {
+                    StoreActionButton {
+                        implicitWidth: 96
                         text: qsTr("Cancel")
+                        actionType: "neutral"
                         onClicked: flatpakBackend.cancelOperation()
                     }
                 }
