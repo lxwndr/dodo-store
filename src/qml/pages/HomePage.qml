@@ -78,42 +78,20 @@ Item {
             elide: Text.ElideRight
         }
 
-        // Curated category tabs.
-        Row {
+        // Curated categories use the native DTK tab-button style.
+        TabBar {
             Layout.alignment: Qt.AlignHCenter
             visible: !root.searching
-            spacing: 4
+            currentIndex: root.currentIndex
+            onCurrentIndexChanged: {
+                if (root.currentIndex !== currentIndex)
+                    root.currentIndex = currentIndex
+            }
 
             Repeater {
                 model: root.tabKeys
-
-                Button {
-                    id: tabButton
+                TabButton {
                     text: root.tabLabel(modelData)
-                    checkable: true
-                    checked: index === root.currentIndex
-                    implicitHeight: 32
-                    leftPadding: 16
-                    rightPadding: 16
-                    onClicked: root.currentIndex = index
-
-                    contentItem: Text {
-                        text: tabButton.text
-                        font: DTK.fontManager.t7
-                        color: tabButton.checked ? palette.highlight
-                                                 : palette.windowText
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    background: Rectangle {
-                        radius: height / 2
-                        color: tabButton.checked
-                               ? Qt.alpha(palette.highlight, 0.16)
-                               : (tabButton.hovered
-                                  ? Qt.alpha(palette.windowText, 0.05)
-                                  : "transparent")
-                    }
                 }
             }
         }
