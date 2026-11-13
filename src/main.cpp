@@ -16,6 +16,7 @@
 #include <QStringList>
 #include <QDBusConnection>
 #include <QDBusMessage>
+#include <QVariantMap>
 
 #include <DLog>
 #include <DGuiApplicationHelper>
@@ -45,7 +46,12 @@ public:
                 << QVariantMap()
                 << 5000;
 
-        QDBusConnection::sessionBus().asyncCall(message);
+        const QDBusConnection bus = QDBusConnection::sessionBus();
+        if (!bus.isConnected()) {
+            qWarning() << "notifications: session D-Bus is unavailable";
+            return;
+        }
+        bus.asyncCall(message);
     }
 };
 
@@ -176,3 +182,5 @@ int main(int argc, char *argv[])
 
     return app.exec();
 }
+
+#include "main.moc"
