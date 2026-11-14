@@ -211,6 +211,9 @@ void FlatpakBackend::searchBrowse(const QString &term)
     for (AppItem *item : base) {
         if (!item)
             continue;
+        // Name and summary are sufficient for matching. Defer expensive
+        // descriptions, screenshots and icon work until the row is shown.
+        m_appstream->enrichSearchMetadata(item);
         if (item->name().contains(term, Qt::CaseInsensitive)
             || item->summary().contains(term, Qt::CaseInsensitive)
             || item->appId().contains(term, Qt::CaseInsensitive)) {
@@ -231,9 +234,14 @@ void FlatpakBackend::loadMoreBrowse()
         return;
 
     const int end = qMin(m_browseShown + kBrowseChunkSize, total);
-    m_browseListModel->appendItems(
-        m_browseFiltered.mid(m_browseShown, end - m_browseShown));
+    const QList<AppItem *> nextItems =
+        m_browseFiltered.mid(m_browseShown, end - m_browseShown);
+    m_browseListModel->appendItems(nextItems);
     m_browseShown = end;
+
+    // Fully enrich only the rows being added to the visible listing.
+    for (AppItem *item : nextItems)
+        m_appstream->enrich(item);
     qDebug() << "browse:" << m_browseCategory << m_browseSearchTerm
              << "- showing" << m_browseShown << "of" << total;
 }
@@ -802,7 +810,7 @@ void FlatpakBackend::onRemoteRefsReady(const QString &remote, QList<AppItem *> i
     m_browseModel->clear();
     m_browseModel->appendItems(items);
     m_loadedBrowseRemote = remote;
-    enrichBatch(m_browseModel, 0);
+    // Browse metadata is enriched on demand as rows enter the visible list.
     setBusy(false);
     Q_EMIT browseLoaded();
 
