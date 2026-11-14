@@ -27,6 +27,9 @@ public:
 
     // Enrich the given item from the pool. Returns true if any field changed.
     bool enrich(AppItem *item);
+    // Populate only searchable text; defer descriptions, screenshots and icons
+    // until an item is actually displayed in the browse list.
+    bool enrichSearchMetadata(AppItem *item);
 
     // App ids of the components carrying @p category (an AppStream category id
     // such as "Game"). Used by the category view of the browse page.
