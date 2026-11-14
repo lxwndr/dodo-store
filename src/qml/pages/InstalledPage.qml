@@ -52,12 +52,20 @@ Item {
             }
             delegate: AppListItem {
                 width: list.width
+                appId: model.appId
+                appName: model.name
+                appSummary: model.summary
+                appIcon: model.icon
+                appVersion: model.version
+                appBranch: model.branch
+                appArch: model.arch
+                isRuntime: model.isRuntime
                 actionText: qsTr("Uninstall")
                 onClicked: {
                     if (root.openDetail)
                         root.openDetail(model.item)
                 }
-                onActionClicked: backend.uninstallApp(model.appId, model.branch, model.arch)
+                onActionClicked: backend.uninstallApp(appId, appBranch, appArch)
             }
         }
 
