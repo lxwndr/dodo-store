@@ -292,6 +292,8 @@ AppItem *FlatpakWorkerPrivate::makeInstalledItem(FlatpakInstalledRef *ref) const
 
     AppItem *item = new AppItem(appId, origin, branch, arch, isRuntime);
     item->setInstalled(true);
+    // Keep the name role populated while AppStream metadata is loading or unavailable.
+    item->setName(appId);
     item->setInstalledSize(flatpak_installed_ref_get_installed_size(ref));
 
     const char *version = flatpak_installed_ref_get_appdata_version(ref);
