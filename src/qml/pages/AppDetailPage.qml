@@ -409,17 +409,18 @@ Item {
                     Repeater {
                         model: [
                             { label: qsTr("Category"), value: root.appCategory || "--", copyable: false, weight: 2 },
-                            { label: qsTr("Package"), value: root.appAppId || "--", copyable: true, weight: 6 },
+                            { label: qsTr("Package"), value: root.appAppId || "--", copyable: true, weight: 5 },
                             { label: qsTr("Size"), value: root.fmtSize(root.displaySize), copyable: false, weight: 2 },
                             { label: qsTr("Version"), value: root.appVersion || "--", copyable: false, weight: 2 },
-                            { label: qsTr("Developer"), value: root.appDeveloper || "--", copyable: false, weight: 3 }
+                            { label: qsTr("Developer"), value: root.appDeveloper || "--", copyable: false, weight: 3 },
+                            { label: qsTr("License"), value: root.appLicense || "--", copyable: false, weight: 2 }
                         ]
                         delegate: RowLayout {
                             // Weighted cells (the package id needs the most room)
                             // plus four one-pixel dividers.
-                            readonly property real totalWeight: 15
+                            readonly property real totalWeight: 16
                             Layout.fillHeight: true
-                            Layout.preferredWidth: (factsRow.width - 4) / totalWeight
+                            Layout.preferredWidth: (factsRow.width - 5) / totalWeight
                                                    * modelData.weight
                                                    + (index < 4 ? 1 : 0)
                             spacing: 0
@@ -435,7 +436,7 @@ Item {
                             }
 
                             Rectangle {
-                                visible: index < 4
+                                visible: index < 5
                                 Layout.preferredWidth: 1
                                 Layout.fillHeight: true
                                 Layout.topMargin: 12
@@ -592,6 +593,7 @@ Item {
                 Layout.fillWidth: true
                 visible: root.appDescription.length > 0
                 text: root.appDescription
+                textFormat: Text.PlainText
                 font: DTK.fontManager.t8
                 color: palette.windowText
                 wrapMode: Text.Wrap
