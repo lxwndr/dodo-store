@@ -166,6 +166,35 @@ QStringList AppStreamPoolBridge::appIdsInCategory(const QString &category) const
     return ids;
 }
 
+bool AppStreamPoolBridge::enrichSearchMetadata(AppItem *item)
+{
+    if (!m_loaded || !item)
+        return false;
+
+    // Avoid repeating AppStream lookups for items whose searchable metadata
+    // has already been populated.
+    if (item->name() != item->appId() && !item->summary().isEmpty())
+        return false;
+
+    const QString appId = item->appId();
+    AppStream::ComponentBox box = m_pool.componentsById(appId);
+    if (box.size() == 0)
+        box = m_pool.componentsById(appId + QStringLiteral(".desktop"));
+    if (box.size() == 0 && appId.endsWith(QStringLiteral(".desktop")))
+        box = m_pool.componentsById(appId.chopped(8));
+    if (box.size() == 0)
+        return false;
+
+    const AppStream::Component comp = *box.begin();
+    const QString name = comp.name();
+    const QString summary = comp.summary();
+    if (!name.isEmpty() && name != appId)
+        item->setName(name);
+    if (!summary.isEmpty())
+        item->setSummary(summary);
+    return !name.isEmpty() || !summary.isEmpty();
+}
+
 bool AppStreamPoolBridge::hasComponent(const QString &appId) const
 {
     return m_loaded && !appId.isEmpty() && m_pool.componentsById(appId).size() > 0;
