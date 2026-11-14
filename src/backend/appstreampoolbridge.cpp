@@ -90,28 +90,34 @@ QString localizedCategory(const QStringList &ids)
     return ids.isEmpty() ? QString() : ids.first();
 }
 
-// Release descriptions are rich text (HTML/markdown). Reduce them to plain
-// text for the "What's new" paragraph.
+// AppStream descriptions and release notes are rich text. Convert them
+// to readable plain text while preserving paragraph and list boundaries.
 QString plainText(const QString &rich)
 {
     QString text = rich;
-    // Turn block boundaries into spaces so adjacent paragraphs do not run
-    // into each other once the tags are gone.
-    text.replace(QRegularExpression(QStringLiteral("</(p|li|div|h[1-6])>"),
-                                    QRegularExpression::CaseInsensitiveOption),
-                 QStringLiteral(" "));
     text.replace(QRegularExpression(QStringLiteral("<br\\s*/?>"),
                                     QRegularExpression::CaseInsensitiveOption),
-                 QStringLiteral(" "));
+                 QStringLiteral("\\n"));
+    text.replace(QRegularExpression(QStringLiteral("<li\\b[^>]*>"),
+                                    QRegularExpression::CaseInsensitiveOption),
+                 QStringLiteral("\\n• "));
+    text.replace(QRegularExpression(QStringLiteral("</(p|li|div|h[1-6])>"),
+                                    QRegularExpression::CaseInsensitiveOption),
+                 QStringLiteral("\\n\\n"));
     text.remove(QRegularExpression(QStringLiteral("<[^>]*>")));
     text.replace(QStringLiteral("&nbsp;"), QStringLiteral(" "));
+    text.replace(QStringLiteral("&#160;"), QStringLiteral(" "));
     text.replace(QStringLiteral("&amp;"), QStringLiteral("&"));
     text.replace(QStringLiteral("&lt;"), QStringLiteral("<"));
     text.replace(QStringLiteral("&gt;"), QStringLiteral(">"));
     text.replace(QStringLiteral("&#39;"), QStringLiteral("'"));
+    text.replace(QStringLiteral("&apos;"), QStringLiteral("'"));
     text.replace(QStringLiteral("&quot;"), QStringLiteral("\""));
-    text = text.simplified();
-    return text;
+    text.replace(QRegularExpression(QStringLiteral("[\\t \\x{00A0}]+")),
+                 QStringLiteral(" "));
+    text.replace(QRegularExpression(QStringLiteral(" *\\n *")), QStringLiteral("\\n"));
+    text.replace(QRegularExpression(QStringLiteral("\\n{3,}")), QStringLiteral("\\n\\n"));
+    return text.trimmed();
 }
 
 } // namespace
@@ -293,15 +299,27 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
             break;
     }
 
-    // Icon: prefer the 128px cached/remote icon.
+    // Prefer a cached local icon, then a remote URL. AppStream::Icon::url()
+    // returns an empty (but technically valid) QUrl for stock/unnamed icons;
+    // accepting that value used to overwrite the installed app's icon with
+    // an empty source.
     const QList<AppStream::Icon> icons = comp.icons();
+    QUrl selectedIcon;
     for (const auto &icon : icons) {
         const QUrl url = icon.url();
-        if (url.isValid()) {
-            item->setIcon(url);
-            changed = true;
+        if (url.isEmpty() || !url.isValid())
+            continue;
+        if (icon.kind() == AppStream::Icon::KindCached
+            || icon.kind() == AppStream::Icon::KindLocal) {
+            selectedIcon = url;
             break;
         }
+        if (selectedIcon.isEmpty())
+            selectedIcon = url;
+    }
+    if (!selectedIcon.isEmpty() && item->iconUrl() != selectedIcon) {
+        item->setIcon(selectedIcon);
+        changed = true;
     }
 
     // Screenshots: keep one URL per screenshot, preferring the full-size
