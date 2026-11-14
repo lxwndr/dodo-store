@@ -143,9 +143,9 @@ Item {
                 width: parent.width / Math.max(1, root.tabKeys.length)
                 height: parent.height
                 radius: DS.Style.control.radius
-                color: palette.button
+                color: palette.highlight
                 border.width: 1
-                border.color: Qt.alpha(palette.windowText, 0.10)
+                border.color: palette.highlight
 
                 Behavior on x {
                     NumberAnimation {
@@ -168,8 +168,9 @@ Item {
                         Text {
                             anchors.centerIn: parent
                             text: root.tabLabel(modelData)
-                            color: palette.windowText
-                            opacity: index === root.currentIndex ? 1.0 : 0.72
+                            color: index === root.currentIndex
+                                   ? palette.highlightedText : palette.windowText
+                            opacity: index === root.currentIndex ? 1.0 : 0.68
                             font: DTK.fontManager.t6
                         }
 
