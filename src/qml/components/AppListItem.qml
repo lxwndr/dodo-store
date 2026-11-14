@@ -75,7 +75,7 @@ Rectangle {
             width: parent.width
             // Fall back to the app id when AppStream metadata is missing
             // (base apps / runtimes listed without a display name).
-            text: model.name || model.appId
+            text: root.appName || root.appId
             font: DTK.fontManager.t7
             color: palette.windowText
             elide: Text.ElideRight
