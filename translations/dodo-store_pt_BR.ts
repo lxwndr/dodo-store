@@ -175,6 +175,11 @@
 <context>
     <name>HomePage</name>
     <message>
+        <location filename="../src/qml/pages/HomePage.qml"/>
+        <source>Search results</source>
+        <translation>Resultados da pesquisa</translation>
+    </message>
+    <message>
         <location filename="../src/qml/pages/HomePage.qml" line="30"/>
         <source>Trending</source>
         <translation>Em alta</translation>
@@ -589,6 +594,11 @@
         <location filename="../src/qml/main.qml"/>
         <source>Search installations</source>
         <translation>Pesquisar instalações</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/main.qml"/>
+        <source>Search updates</source>
+        <translation>Pesquisar atualizações</translation>
     </message>
 </context>
 </TS>
