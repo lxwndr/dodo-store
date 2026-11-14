@@ -44,6 +44,8 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
             this, &FlatpakBackend::onApiCollectionFailed);
     connect(m_storeApi, &StoreApiClient::refreshStarted,
             this, &FlatpakBackend::onApiRefreshStarted);
+    connect(m_storeApi, &StoreApiClient::appIconReady,
+            this, &FlatpakBackend::onInstalledIconReady);
 
     qRegisterMetaType<QList<AppItem *>>("QList<AppItem*>");
 
@@ -891,9 +893,26 @@ void FlatpakBackend::enrichBatch(AppListModel *model, int from)
     static constexpr int kEnrichBatchSize = 200;
     const QList<AppItem *> items = model->items();
     const int end = qMin(from + kEnrichBatchSize, items.size());
-    for (int i = from; i < end; ++i)
-        m_appstream->enrich(items.at(i));
+    for (int i = from; i < end; ++i) {
+        AppItem *item = items.at(i);
+        m_appstream->enrich(item);
+        // Installed refs do not carry icon URLs. Reuse AppStream first, then
+        // ask the shared store client for a cached/downloaded Flathub icon.
+        if (model == m_installedModel && item && !item->isRuntime()
+            && item->iconUrl().isEmpty())
+            m_storeApi->resolveAppIcon(item->appId());
+    }
     if (end < items.size())
         QMetaObject::invokeMethod(this, [this, model, end] { enrichBatch(model, end); },
                                   Qt::QueuedConnection);
+}
+ 
+void FlatpakBackend::onInstalledIconReady(const QString &appId, const QUrl &iconUrl)
+{
+    if (iconUrl.isEmpty())
+        return;
+    for (AppItem *item : m_installedModel->items()) {
+        if (item && item->appId() == appId && item->iconUrl().isEmpty())
+            item->setIcon(iconUrl);
+    }
 }
