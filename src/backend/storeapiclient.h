@@ -7,6 +7,8 @@
 #include <QObject>
 #include <QString>
 #include <QVariantList>
+#include <QUrl>
+#include <QSet>
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -27,6 +29,10 @@ public:
     // force=false uses the cache while it is younger than one hour.
     void refresh(bool force = false);
 
+    // Resolve an application icon from the local cache or Flathub. Requests
+    // for the same app are coalesced while in flight.
+    void resolveAppIcon(const QString &appId);
+
 Q_SIGNALS:
     void collectionReady(const QString &collection, const QVariantList &apps);
     // hadCache tells whether cachedApps holds usable data. It is empty when
@@ -35,6 +41,7 @@ Q_SIGNALS:
                           bool hadCache, const QVariantList &cachedApps);
     void refreshStarted();
     void refreshFinished();
+    void appIconReady(const QString &appId, const QUrl &iconUrl);
 
 private:
     struct CacheEntry {
@@ -47,10 +54,13 @@ private:
     void writeCache(const QString &collection, const QVariantList &apps) const;
     QString cacheDir() const;
     void finishOne();
+    QString appIconCachePath(const QString &appId) const;
+    void downloadAppIcon(const QString &appId, const QUrl &iconUrl);
 
     QNetworkAccessManager *m_manager = nullptr;
     QString m_baseUrl;
     QList<QNetworkReply *> m_replies;
     int m_pending = 0;
     int m_generation = 0;
+    QSet<QString> m_iconRequests;
 };
