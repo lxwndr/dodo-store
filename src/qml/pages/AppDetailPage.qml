@@ -15,6 +15,7 @@ import org.deepin.dtk 1.0
 // content) is deliberately omitted.
 Item {
     id: root
+    property var backend: null
     // AppItem instance (populated by the openDetail callback in main.qml).
     property var appItem: null
     signal backClicked()
@@ -55,11 +56,11 @@ Item {
     // model count so it is re-evaluated (and re-queries the backend) every
     // time the lists are refreshed.
     readonly property bool installed: appAppId.length > 0
-        && flatpakBackend.installedModel.count >= 0
-        && flatpakBackend.isInstalled(refKey())
+        && backend.installedModel.count >= 0
+        && backend.isInstalled(refKey())
     readonly property bool updateAvailable: appAppId.length > 0
-        && flatpakBackend.updatesModel.count >= 0
-        && flatpakBackend.hasUpdate(refKey())
+        && backend.updatesModel.count >= 0
+        && backend.hasUpdate(refKey())
 
     function snapshot() {
         if (!appItem)
@@ -94,7 +95,7 @@ Item {
     function refreshFromBackend() {
         if (appAppId.length === 0)
             return
-        var live = flatpakBackend.findAppByKey(refKey())
+        var live = backend.findAppByKey(refKey())
         if (live && live !== appItem)
             appItem = live          // triggers onAppItemChanged -> snapshot()
         else if (live)
@@ -102,7 +103,7 @@ Item {
     }
 
     Connections {
-        target: flatpakBackend
+        target: backend
         function onBrowseLoaded() { root.refreshFromBackend() }
         function onInstalledLoaded() { root.refreshFromBackend() }
         function onUpdatesLoaded() { root.refreshFromBackend() }
@@ -253,12 +254,24 @@ Item {
                     radius: 20
                     color: palette.base
                     Image {
+                        id: detailIcon
                         anchors.fill: parent
                         anchors.margins: 12
                         source: root.iconUrl
+                        onStatusChanged: if (status === Image.Error) console.warn("detail icon: failed to load", source, "for", root.appAppId)
                         fillMode: Image.PreserveAspectFit
                         asynchronous: true
-                        sourceSize { width: 96; height: 96 }
+                        cache: true
+                        sourceSize { width: 192; height: 192 }
+                    }
+                    Text {
+                        anchors.centerIn: parent
+                        visible: !root.iconUrl || detailIcon.status === Image.Error
+                                 || detailIcon.status === Image.Null
+                        text: (root.appName || root.appAppId || "?").substring(0, 1).toUpperCase()
+                        font: DTK.fontManager.t1
+                        color: palette.windowText
+                        opacity: 0.45
                     }
                 }
 
@@ -308,84 +321,42 @@ Item {
 
                         // Primary action: Install, or Update when one is available.
                         Button {
-                            id: primaryButton
                             visible: !root.installed || root.updateAvailable
-                            enabled: !flatpakBackend.busy
-                            implicitWidth: 130
-                            implicitHeight: 36
+                            enabled: !backend.busy
+                            highlighted: true
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
-                            contentItem: Text {
-                                text: primaryButton.text
-                                font: DTK.fontManager.t6
-                                color: "white"
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
-                            }
-                            background: Rectangle {
-                                radius: height / 2
-                                color: primaryButton.pressed
-                                       ? Qt.darker(root.updateAvailable ? "#2ca34a" : palette.highlight, 1.15)
-                                       : (root.updateAvailable ? "#2ca34a" : palette.highlight)
-                                opacity: primaryButton.enabled ? 1 : 0.5
-                            }
                             onClicked: {
                                 if (root.updateAvailable)
-                                    flatpakBackend.updateApp(root.appAppId, root.appBranch, root.appArch)
+                                    backend.updateApp(root.appAppId, root.appBranch, root.appArch)
                                 else
-                                    flatpakBackend.installApp(root.appAppId, root.appRemote,
+                                    backend.installApp(root.appAppId, root.appRemote,
                                                               root.appBranch, root.appArch)
                             }
                         }
 
                         // Launch the installed app without changing its install state.
                         Button {
-                            id: openButton
                             visible: root.installed
-                            enabled: !flatpakBackend.busy
-                            implicitWidth: 130
-                            implicitHeight: 36
+                            enabled: !backend.busy
+                            highlighted: true
                             text: qsTr("Open")
-                            contentItem: Text {
-                                text: openButton.text
-                                font: DTK.fontManager.t6
-                                color: "white"
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
-                            }
-                            background: Rectangle {
-                                radius: height / 2
-                                color: openButton.pressed
-                                       ? Qt.darker(palette.highlight, 1.15)
-                                       : palette.highlight
-                                opacity: openButton.enabled ? 1 : 0.5
-                            }
-                            onClicked: flatpakBackend.launchApp(root.appAppId,
+                            onClicked: backend.launchApp(root.appAppId,
                                                                 root.appBranch, root.appArch)
                         }
 
                         Button {
                             visible: root.installed
-                            enabled: !flatpakBackend.busy
-                            implicitWidth: 130
-                            implicitHeight: 36
+                            enabled: !backend.busy
                             text: qsTr("Uninstall")
-                            background: Rectangle {
-                                radius: height / 2
-                                color: palette.button
-                                border.color: Qt.darker(palette.button, 1.08)
-                                opacity: enabled ? 1 : 0.5
-                            }
-                            onClicked: flatpakBackend.uninstallApp(root.appAppId,
+                            onClicked: backend.uninstallApp(root.appAppId,
                                                                    root.appBranch, root.appArch)
                         }
                     }
 
                     Text {
                         Layout.alignment: Qt.AlignRight
-                        visible: flatpakBackend.busy
-                        text: Math.round(flatpakBackend.progress * 100) + "%"
+                        visible: backend.busy
+                        text: Math.round(backend.progress * 100) + "%"
                         font: DTK.fontManager.t9
                         color: palette.windowText
                         opacity: 0.6
@@ -397,25 +368,25 @@ Item {
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 4
-                visible: flatpakBackend.busy
+                visible: backend.busy
                 ProgressBar {
                     Layout.fillWidth: true
                     from: 0
                     to: 100
-                    value: flatpakBackend.progress * 100
+                    value: backend.progress * 100
                 }
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
                         Layout.fillWidth: true
-                        text: flatpakBackend.status
+                        text: backend.status
                         font: DTK.fontManager.t9
                         color: palette.windowText
                         elide: Text.ElideRight
                     }
                     Button {
                         text: qsTr("Cancel")
-                        onClicked: flatpakBackend.cancelOperation()
+                        onClicked: backend.cancelOperation()
                     }
                 }
             }
@@ -440,17 +411,18 @@ Item {
                     Repeater {
                         model: [
                             { label: qsTr("Category"), value: root.appCategory || "--", copyable: false, weight: 2 },
-                            { label: qsTr("Package"), value: root.appAppId || "--", copyable: true, weight: 6 },
+                            { label: qsTr("Package"), value: root.appAppId || "--", copyable: true, weight: 5 },
                             { label: qsTr("Size"), value: root.fmtSize(root.displaySize), copyable: false, weight: 2 },
                             { label: qsTr("Version"), value: root.appVersion || "--", copyable: false, weight: 2 },
-                            { label: qsTr("Developer"), value: root.appDeveloper || "--", copyable: false, weight: 3 }
+                            { label: qsTr("Developer"), value: root.appDeveloper || "--", copyable: false, weight: 3 },
+                            { label: qsTr("License"), value: root.appLicense || "--", copyable: false, weight: 2 }
                         ]
                         delegate: RowLayout {
                             // Weighted cells (the package id needs the most room)
                             // plus four one-pixel dividers.
-                            readonly property real totalWeight: 15
+                            readonly property real totalWeight: 16
                             Layout.fillHeight: true
-                            Layout.preferredWidth: (factsRow.width - 4) / totalWeight
+                            Layout.preferredWidth: (factsRow.width - 5) / totalWeight
                                                    * modelData.weight
                                                    + (index < 4 ? 1 : 0)
                             spacing: 0
@@ -466,7 +438,7 @@ Item {
                             }
 
                             Rectangle {
-                                visible: index < 4
+                                visible: index < 5
                                 Layout.preferredWidth: 1
                                 Layout.fillHeight: true
                                 Layout.topMargin: 12
@@ -623,6 +595,7 @@ Item {
                 Layout.fillWidth: true
                 visible: root.appDescription.length > 0
                 text: root.appDescription
+                textFormat: Text.PlainText
                 font: DTK.fontManager.t8
                 color: palette.windowText
                 wrapMode: Text.Wrap

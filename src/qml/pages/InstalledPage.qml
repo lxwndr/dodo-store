@@ -10,30 +10,25 @@ import "../components"
 
 Item {
     id: root
+    property var backend: null
     property var openDetail: null
+    property string searchText: ""
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 16
         spacing: 12
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 8
-            LineEdit {
-                id: searchField
-                Layout.fillWidth: true
-                placeholderText: qsTr("Search installed applications...")
-            }
-            Button {
-                text: qsTr("Refresh")
-                onClicked: flatpakBackend.refreshInstalled()
-            }
+        AppFilterProxyModel {
+            id: installedModelFilter
+            sourceModel: backend.installedModel
+            hideRuntimes: true
+            filterText: root.searchText
         }
 
         AppFilterProxyModel {
             id: installedCountModel
-            sourceModel: flatpakBackend.installedModel
+            sourceModel: installedModelFilter
             hideRuntimes: true
         }
 
@@ -51,23 +46,32 @@ Item {
             clip: true
             spacing: 4
             model: AppFilterProxyModel {
-                sourceModel: flatpakBackend.installedModel
-                filterText: searchField.text
+                sourceModel: backend.installedModel
                 hideRuntimes: true
+                filterText: root.searchText
             }
             delegate: AppListItem {
                 width: list.width
+                appId: model.appId
+                appName: model.name
+                appSummary: model.summary
+                appIcon: model.icon
+                appVersion: model.version
+                versionBelowName: true
+                appBranch: model.branch
+                appArch: model.arch
+                isRuntime: model.isRuntime
                 actionText: qsTr("Uninstall")
                 onClicked: {
                     if (root.openDetail)
                         root.openDetail(model.item)
                 }
-                onActionClicked: flatpakBackend.uninstallApp(model.appId, model.branch, model.arch)
+                onActionClicked: backend.uninstallApp(appId, appBranch, appArch)
             }
         }
 
         Label {
-            visible: list.count === 0 && !flatpakBackend.busy
+            visible: list.count === 0 && !backend.busy
             Layout.alignment: Qt.AlignHCenter
             text: qsTr("Nothing installed yet.")
             color: palette.windowText

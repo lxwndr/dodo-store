@@ -44,6 +44,8 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
             this, &FlatpakBackend::onApiCollectionFailed);
     connect(m_storeApi, &StoreApiClient::refreshStarted,
             this, &FlatpakBackend::onApiRefreshStarted);
+    connect(m_storeApi, &StoreApiClient::appIconReady,
+            this, &FlatpakBackend::onAppIconReady);
 
     qRegisterMetaType<QList<AppItem *>>("QList<AppItem*>");
 
@@ -67,6 +69,10 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
 
     connect(m_thread, &QThread::finished, m_worker, &QObject::deleteLater);
     m_thread->start();
+
+    // Populate Installed, Updates and Remotes automatically on startup.
+    // The same refresh is triggered again after every Flatpak transaction.
+    refreshInstalled();
 
     connect(m_appstream, &AppStreamPoolBridge::loadFinished, this, &FlatpakBackend::onAppStreamLoaded);
     m_appstream->startLoading();
@@ -205,6 +211,9 @@ void FlatpakBackend::searchBrowse(const QString &term)
     for (AppItem *item : base) {
         if (!item)
             continue;
+        // Name and summary are sufficient for matching. Defer expensive
+        // descriptions, screenshots and icon work until the row is shown.
+        m_appstream->enrichSearchMetadata(item);
         if (item->name().contains(term, Qt::CaseInsensitive)
             || item->summary().contains(term, Qt::CaseInsensitive)
             || item->appId().contains(term, Qt::CaseInsensitive)) {
@@ -225,9 +234,20 @@ void FlatpakBackend::loadMoreBrowse()
         return;
 
     const int end = qMin(m_browseShown + kBrowseChunkSize, total);
-    m_browseListModel->appendItems(
-        m_browseFiltered.mid(m_browseShown, end - m_browseShown));
+    const QList<AppItem *> nextItems =
+        m_browseFiltered.mid(m_browseShown, end - m_browseShown);
+    m_browseListModel->appendItems(nextItems);
     m_browseShown = end;
+
+    // Fully enrich only the rows being added to the visible listing.
+    for (AppItem *item : nextItems) {
+        if (!item || item->isRuntime())
+            continue;
+        // Keep AppStream as an immediate fallback, but resolve the persistent
+        // Flathub cache/download for every app that enters the visible list.
+        m_appstream->enrich(item);
+        m_storeApi->resolveAppIcon(item->appId());
+    }
     qDebug() << "browse:" << m_browseCategory << m_browseSearchTerm
              << "- showing" << m_browseShown << "of" << total;
 }
@@ -728,6 +748,24 @@ void FlatpakBackend::onRemotesReady(const QVariantList &remotes)
 {
     m_remotesInfo = remotes;
 
+    // Provision Flathub for this user on first startup when it is not already
+    // configured. Existing remotes (including disabled ones) are left untouched.
+    bool hasFlathub = false;
+    for (const QVariant &entry : remotes) {
+        if (entry.toMap().value(QStringLiteral("name")).toString()
+            == QLatin1String("flathub")) {
+            hasFlathub = true;
+            break;
+        }
+    }
+    if (!hasFlathub && !m_flathubBootstrapAttempted) {
+        m_flathubBootstrapAttempted = true;
+        qInfo() << "flatpak: Flathub is not configured; adding it for the current user";
+        addRemote(QStringLiteral("flathub"),
+                  QStringLiteral("https://dl.flathub.org/repo/flathub.flatpakrepo"),
+                  true);
+    }
+
     QStringList names;
     names.reserve(remotes.size());
     for (const QVariant &entry : remotes) {
@@ -759,6 +797,9 @@ void FlatpakBackend::onRemoteOperationFinished(bool success, const QString &acti
         // Remote changes may invalidate the cached catalog.
         m_loadedBrowseRemote.clear();
         QMetaObject::invokeMethod(m_worker, "loadRemotes", Qt::QueuedConnection);
+    } else if (action == QLatin1String("add")
+               && name == QLatin1String("flathub")) {
+        qWarning() << "flatpak: automatic Flathub setup failed:" << error;
     }
     Q_EMIT remoteOperationFinished(success, action, name, error);
 }
@@ -775,7 +816,7 @@ void FlatpakBackend::onRemoteRefsReady(const QString &remote, QList<AppItem *> i
     m_browseModel->clear();
     m_browseModel->appendItems(items);
     m_loadedBrowseRemote = remote;
-    enrichBatch(m_browseModel, 0);
+    // Browse metadata is enriched on demand as rows enter the visible list.
     setBusy(false);
     Q_EMIT browseLoaded();
 
@@ -866,9 +907,33 @@ void FlatpakBackend::enrichBatch(AppListModel *model, int from)
     static constexpr int kEnrichBatchSize = 200;
     const QList<AppItem *> items = model->items();
     const int end = qMin(from + kEnrichBatchSize, items.size());
-    for (int i = from; i < end; ++i)
-        m_appstream->enrich(items.at(i));
+    for (int i = from; i < end; ++i) {
+        AppItem *item = items.at(i);
+        m_appstream->enrich(item);
+        // Installed refs do not carry icon URLs. Reuse AppStream first, then
+        // ask the shared store client for a cached/downloaded Flathub icon.
+        if (model == m_installedModel && item && !item->isRuntime()
+            && item->iconUrl().isEmpty())
+            m_storeApi->resolveAppIcon(item->appId());
+    }
     if (end < items.size())
         QMetaObject::invokeMethod(this, [this, model, end] { enrichBatch(model, end); },
                                   Qt::QueuedConnection);
+}
+ 
+void FlatpakBackend::onAppIconReady(const QString &appId, const QUrl &iconUrl)
+{
+    if (iconUrl.isEmpty())
+        return;
+
+    // The same icon resolver serves Installed and Browse. Browse items are
+    // owned by browseModel; browseListModel only references those objects.
+    for (AppItem *item : m_installedModel->items()) {
+        if (item && item->appId() == appId)
+            item->setIcon(iconUrl);
+    }
+    for (AppItem *item : m_browseModel->items()) {
+        if (item && item->appId() == appId)
+            item->setIcon(iconUrl);
+    }
 }

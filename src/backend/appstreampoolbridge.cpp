@@ -9,6 +9,10 @@
 #include <QHash>
 #include <QUrl>
 #include <QDateTime>
+#include <QLocale>
+#include <QIcon>
+#include <QPixmap>
+#include <QBuffer>
 #include <algorithm>
 
 #include <AppStreamQt/component.h>
@@ -89,28 +93,34 @@ QString localizedCategory(const QStringList &ids)
     return ids.isEmpty() ? QString() : ids.first();
 }
 
-// Release descriptions are rich text (HTML/markdown). Reduce them to plain
-// text for the "What's new" paragraph.
+// AppStream descriptions and release notes are rich text. Convert them
+// to readable plain text while preserving paragraph and list boundaries.
 QString plainText(const QString &rich)
 {
     QString text = rich;
-    // Turn block boundaries into spaces so adjacent paragraphs do not run
-    // into each other once the tags are gone.
-    text.replace(QRegularExpression(QStringLiteral("</(p|li|div|h[1-6])>"),
-                                    QRegularExpression::CaseInsensitiveOption),
-                 QStringLiteral(" "));
     text.replace(QRegularExpression(QStringLiteral("<br\\s*/?>"),
                                     QRegularExpression::CaseInsensitiveOption),
-                 QStringLiteral(" "));
+                 QStringLiteral("\n"));
+    text.replace(QRegularExpression(QStringLiteral("<li\\b[^>]*>"),
+                                    QRegularExpression::CaseInsensitiveOption),
+                 QStringLiteral("\n• "));
+    text.replace(QRegularExpression(QStringLiteral("</(p|li|div|h[1-6])>"),
+                                    QRegularExpression::CaseInsensitiveOption),
+                 QStringLiteral("\n\n"));
     text.remove(QRegularExpression(QStringLiteral("<[^>]*>")));
     text.replace(QStringLiteral("&nbsp;"), QStringLiteral(" "));
+    text.replace(QStringLiteral("&#160;"), QStringLiteral(" "));
     text.replace(QStringLiteral("&amp;"), QStringLiteral("&"));
     text.replace(QStringLiteral("&lt;"), QStringLiteral("<"));
     text.replace(QStringLiteral("&gt;"), QStringLiteral(">"));
     text.replace(QStringLiteral("&#39;"), QStringLiteral("'"));
+    text.replace(QStringLiteral("&apos;"), QStringLiteral("'"));
     text.replace(QStringLiteral("&quot;"), QStringLiteral("\""));
-    text = text.simplified();
-    return text;
+    text.replace(QRegularExpression(QStringLiteral("[\\t \\x{00A0}]+")),
+                 QStringLiteral(" "));
+    text.replace(QRegularExpression(QStringLiteral(" *\\n *")), QStringLiteral("\n"));
+    text.replace(QRegularExpression(QStringLiteral("\\n{3,}")), QStringLiteral("\n\n"));
+    return text.trimmed();
 }
 
 } // namespace
@@ -120,7 +130,7 @@ AppStreamPoolBridge::AppStreamPoolBridge(QObject *parent)
 {
     // Only flatpak appstream metadata is relevant for this store.
     m_pool.setFlags(AppStream::Pool::FlagLoadFlatpak);
-    m_pool.setLocale(QStringLiteral("zh_CN"));
+    m_pool.setLocale(QLocale::system().name());
 }
 
 void AppStreamPoolBridge::startLoading()
@@ -154,6 +164,35 @@ QStringList AppStreamPoolBridge::appIdsInCategory(const QString &category) const
             ids.append(id);
     }
     return ids;
+}
+
+bool AppStreamPoolBridge::enrichSearchMetadata(AppItem *item)
+{
+    if (!m_loaded || !item)
+        return false;
+
+    // Avoid repeating AppStream lookups for items whose searchable metadata
+    // has already been populated.
+    if (item->name() != item->appId() && !item->summary().isEmpty())
+        return false;
+
+    const QString appId = item->appId();
+    AppStream::ComponentBox box = m_pool.componentsById(appId);
+    if (box.size() == 0)
+        box = m_pool.componentsById(appId + QStringLiteral(".desktop"));
+    if (box.size() == 0 && appId.endsWith(QStringLiteral(".desktop")))
+        box = m_pool.componentsById(appId.chopped(8));
+    if (box.size() == 0)
+        return false;
+
+    const AppStream::Component comp = *box.begin();
+    const QString name = comp.name();
+    const QString summary = comp.summary();
+    if (!name.isEmpty() && name != appId)
+        item->setName(name);
+    if (!summary.isEmpty())
+        item->setSummary(summary);
+    return !name.isEmpty() || !summary.isEmpty();
 }
 
 bool AppStreamPoolBridge::hasComponent(const QString &appId) const
@@ -209,9 +248,18 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
         return false;
 
     const QString appId = item->appId();
-    const AppStream::ComponentBox box = m_pool.componentsById(appId);
+
+    // AppStream component IDs do not always match the Flatpak ref ID exactly.
+    // Desktop applications are commonly published with a ".desktop" suffix.
+    AppStream::ComponentBox box = m_pool.componentsById(appId);
     if (box.size() == 0)
+        box = m_pool.componentsById(appId + QStringLiteral(".desktop"));
+    if (box.size() == 0 && appId.endsWith(QStringLiteral(".desktop")))
+        box = m_pool.componentsById(appId.chopped(8));
+    if (box.size() == 0) {
+        qDebug() << "AppStream metadata not found for Flatpak app:" << appId;
         return false;
+    }
 
     const AppStream::Component comp = *box.begin();
 
@@ -227,7 +275,7 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
         item->setSummary(summary);
         changed = true;
     }
-    const QString description = comp.description();
+    const QString description = plainText(comp.description());
     if (!description.isEmpty()) {
         item->setDescription(description);
         changed = true;
@@ -283,15 +331,50 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
             break;
     }
 
-    // Icon: prefer the 128px cached/remote icon.
+    // Prefer a cached local icon, then a remote URL. AppStream::Icon::url()
+    // returns an empty (but technically valid) QUrl for stock/unnamed icons;
+    // accepting that value used to overwrite the installed app's icon with
+    // an empty source.
     const QList<AppStream::Icon> icons = comp.icons();
+    QUrl selectedIcon;
+    QString stockIconName;
     for (const auto &icon : icons) {
+        if (icon.kind() == AppStream::Icon::KindStock) {
+            if (stockIconName.isEmpty())
+                stockIconName = icon.name();
+            continue;
+        }
+
         const QUrl url = icon.url();
-        if (url.isValid()) {
-            item->setIcon(url);
-            changed = true;
+        if (url.isEmpty() || !url.isValid())
+            continue;
+        if (icon.kind() == AppStream::Icon::KindCached
+            || icon.kind() == AppStream::Icon::KindLocal) {
+            selectedIcon = url;
             break;
         }
+        if (selectedIcon.isEmpty())
+            selectedIcon = url;
+    }
+
+    // Stock icons have a theme name instead of a file/URL. Resolve them with
+    // the active desktop icon theme and pass the resulting image to QML.
+    if (selectedIcon.isEmpty() && !stockIconName.isEmpty()) {
+        const QIcon themedIcon = QIcon::fromTheme(stockIconName);
+        if (!themedIcon.isNull()) {
+            const QPixmap pixmap = themedIcon.pixmap(128, 128);
+            QByteArray imageData;
+            QBuffer buffer(&imageData);
+            if (buffer.open(QIODevice::WriteOnly) && pixmap.save(&buffer, "PNG")) {
+                selectedIcon = QUrl(QStringLiteral("data:image/png;base64,")
+                                    + QString::fromLatin1(imageData.toBase64()));
+            }
+        }
+    }
+
+    if (!selectedIcon.isEmpty() && item->iconUrl() != selectedIcon) {
+        item->setIcon(selectedIcon);
+        changed = true;
     }
 
     // Screenshots: keep one URL per screenshot, preferring the full-size
@@ -304,7 +387,7 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
             QUrl thumbnail;
             for (const auto &img : shot.imagesAll()) {
                 const QUrl u = img.url();
-                if (!u.isValid())
+                if (u.isEmpty() || !u.isValid())
                     continue;
                 if (img.kind() == AppStream::Image::KindThumbnail) {
                     if (thumbnail.isEmpty())

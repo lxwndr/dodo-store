@@ -31,26 +31,63 @@ ApplicationWindow {
     color: "transparent"
 
     property int pageIndex: 0
+    // Keep the C++ backend on the root context and pass this stable reference
+    // to every page component instead of resolving the context property there.
+    property var backend: flatpakBackend
     // Set once the DConfig-backed settings object is ready; guards the change
     // handlers while DConfig populates it during construction.
     property bool storeSettingsReady: false
 
     // The page instances hosted by the right-hand StackView, one per tab.
-    property var pageStack: [null, null, null, null, null]
+    property var pageStack: [null, null, null]
+
+    Component {
+        id: detailPageComponent
+        AppDetailPage { }
+    }
 
     // Push a populated AppDetailPage onto the stack for the given AppItem.
     function openDetail(item) {
-        var detail = mainStack.push("pages/AppDetailPage.qml", { appItem: item })
+        if (!item || !item.appId) {
+            console.warn("navigation: cannot open app details; invalid AppItem", item)
+            return
+        }
+        if (!root.backend) {
+            console.warn("navigation: cannot open app details; Flatpak backend is unavailable")
+            return
+        }
+
+        console.info("navigation: opening app details", item.appId, item.branch, item.remote)
+        var detail = mainStack.push(detailPageComponent, {
+            appItem: item,
+            backend: root.backend
+        })
+        if (!detail) {
+            console.warn("navigation: StackView did not create AppDetailPage for", item.appId)
+            return
+        }
         detail.backClicked.connect(function() { mainStack.pop() })
     }
 
-    // Jump to the Browse tab and apply the search text typed in the title bar.
+    // Keep search within the unified Explore page.
     function applyGlobalSearch(text) {
-        while (mainStack.depth > 1)
-            mainStack.pop()
-        root.pageIndex = 1
-        browsePage.searchText = text
+        if (root.pageIndex === 0)
+            explorePage.searchText = text
+        else if (root.pageIndex === 1)
+            installedPage.searchText = text
+        else if (root.pageIndex === 2)
+            updatesPage.searchText = text
     }
+
+    readonly property string searchPlaceholder: {
+        if (root.pageIndex === 0)
+            return qsTr("Search Flathub")
+        if (root.pageIndex === 1)
+            return qsTr("Search installed")
+        return qsTr("Search updates")
+    }
+
+    onPageIndexChanged: applyGlobalSearch(searchField.text)
 
     function showPage(index) {
         // Popping any open detail pages when switching tabs.
@@ -59,21 +96,37 @@ ApplicationWindow {
         root.pageIndex = index
     }
 
-    // Show a transient toast on this window.
+    // Send feedback through the desktop notification service so it remains
+    // available even when the store window is not focused.
     function showToast(text) {
-        DTK.sendMessage(root, text)
+        notificationService.notify(qsTr("Dodo Store"), text)
     }
 
     // Push the persisted store API settings to the backend. Called on startup
     // and whenever DConfig reports a change.
     function applyStoreSettings() {
-        flatpakBackend.configureStoreApi(storeSettings.apiEnabled,
+        root.backend.configureStoreApi(storeSettings.apiEnabled,
                                          storeSettings.apiBaseUrl,
                                          storeSettings.apiProxy)
     }
 
+    // Explicitly synchronize the backend with the pages. Some supported
+    // Qt/DTK runtimes do not reliably propagate the root property binding
+    // through the StackView/StackLayout hierarchy.
+    function syncPageBackends() {
+        if (explorePage)
+            explorePage.backend = root.backend
+        if (installedPage)
+            installedPage.backend = root.backend
+        if (updatesPage)
+            updatesPage.backend = root.backend
+    }
+
+    onBackendChanged: syncPageBackends()
+    Component.onCompleted: syncPageBackends()
+
     Connections {
-        target: flatpakBackend
+        target: root.backend
         function onOperationFinished(ref, success, error) {
             if (success)
                 root.showToast(qsTr("Operation completed: %1").arg(ref))
@@ -100,8 +153,8 @@ ApplicationWindow {
         }
         // A "flatpak+https" web link resolved to an app: open its detail page.
         function onOpenAppRequested(appId, branch) {
-            root.showPage(1)
-            var item = flatpakBackend.findAppItem(appId, branch)
+            root.showPage(0)
+            var item = root.backend.findAppItem(appId, branch)
             if (item)
                 root.openDetail(item)
             else
@@ -123,17 +176,8 @@ ApplicationWindow {
 
             IconButton {
                 icon.name: "go-previous"
-                // Also navigates back from a Browse category, so the page does
-                // not need its own back button.
                 visible: mainStack.depth > 1
-                         || (root.pageIndex === 1 && browsePage.appsView
-                             && browsePage.searchText === "")
-                onClicked: {
-                    if (mainStack.depth > 1)
-                        mainStack.pop()
-                    else
-                        browsePage.backToCategories()
-                }
+                onClicked: mainStack.pop()
             }
 
             Item { Layout.fillWidth: true }
@@ -153,7 +197,7 @@ ApplicationWindow {
                 id: searchField
                 Layout.preferredWidth: 320
                 Layout.alignment: Qt.AlignCenter
-                placeholder: qsTr("Search applications")
+                placeholder: root.searchPlaceholder
                 onTextChanged: root.applyGlobalSearch(text)
             }
 
@@ -334,8 +378,7 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Home"), iconSource: "qrc:/qml/icons/home.svg", darkIconSource: "qrc:/qml/icons/home-dark.svg" },
-                    { label: qsTr("Browse"), iconSource: "qrc:/qml/icons/browse.svg", darkIconSource: "qrc:/qml/icons/browse-dark.svg" }
+                    { label: qsTr("Explore"), iconSource: "qrc:/qml/icons/browse.svg", darkIconSource: "qrc:/qml/icons/browse-dark.svg" }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
@@ -362,8 +405,8 @@ ApplicationWindow {
 
             Repeater {
                 model: [
-                    { label: qsTr("Installed"), iconSource: "qrc:/qml/icons/installed.svg", darkIconSource: "qrc:/qml/icons/installed-dark.svg", page: 2 },
-                    { label: qsTr("Updates"), iconSource: "qrc:/qml/icons/updates.svg", darkIconSource: "qrc:/qml/icons/updates-dark.svg", page: 3 }
+                    { label: qsTr("Installed"), iconSource: "qrc:/qml/icons/installed.svg", darkIconSource: "qrc:/qml/icons/installed-dark.svg", page: 1 },
+                    { label: qsTr("Updates"), iconSource: "qrc:/qml/icons/updates.svg", darkIconSource: "qrc:/qml/icons/updates-dark.svg", page: 2 }
                 ]
                 delegate: ItemDelegate {
                     Layout.fillWidth: true
@@ -377,7 +420,7 @@ ApplicationWindow {
 
                     Rectangle {
                         id: updatesBadge
-                        visible: modelData.page === 3 && flatpakBackend.applicationUpdateCount > 0
+                        visible: modelData.page === 2 && root.backend.applicationUpdateCount > 0
                         width: Math.max(18, updatesBadgeText.implicitWidth + 8)
                         height: 18
                         radius: 9
@@ -389,39 +432,12 @@ ApplicationWindow {
                         Text {
                             id: updatesBadgeText
                             anchors.centerIn: parent
-                            text: flatpakBackend.applicationUpdateCount
+                            text: root.backend.applicationUpdateCount
                             color: "#ffffff"
                             font.pixelSize: 11
                             font.bold: true
                         }
                     }
-                }
-            }
-
-            Item { Layout.preferredHeight: 20 }
-
-            Label {
-                text: qsTr("Settings")
-                font: DTK.fontManager.t5
-                color: palette.windowText
-                opacity: 0.7
-                Layout.leftMargin: 10
-                Layout.bottomMargin: 4
-            }
-
-            Repeater {
-                model: [
-                    { label: qsTr("Remotes"), iconSource: "qrc:/qml/icons/remotes.svg", darkIconSource: "qrc:/qml/icons/remotes-dark.svg", page: 4 }
-                ]
-                delegate: ItemDelegate {
-                    Layout.fillWidth: true
-                    icon.source: DTK.themeType === ApplicationHelper.LightType ? modelData.iconSource : modelData.darkIconSource
-                    icon.color: palette.windowText
-                    icon.width: 20
-                    icon.height: 20
-                    checked: root.pageIndex === modelData.page
-                    text: modelData.label
-                    onClicked: root.showPage(modelData.page)
                 }
             }
 
@@ -439,19 +455,19 @@ ApplicationWindow {
                 currentIndex: root.pageIndex
 
                 HomePage {
-                    openDetail: function(item) { root.openDetail(item) }
-                }
-                BrowsePage {
-                    id: browsePage
+                    id: explorePage
+                    backend: root.backend
                     openDetail: function(item) { root.openDetail(item) }
                 }
                 InstalledPage {
+                    id: installedPage
+                    backend: root.backend
                     openDetail: function(item) { root.openDetail(item) }
                 }
                 UpdatesPage {
+                    id: updatesPage
+                    backend: root.backend
                     openDetail: function(item) { root.openDetail(item) }
-                }
-                RemotesPage {
                 }
             }
         }

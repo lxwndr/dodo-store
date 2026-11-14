@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 import org.deepin.dtk 1.0
 
 // Row delegate for the Installed / Updates lists. Emits two signals that the
@@ -16,6 +17,15 @@ Rectangle {
     id: root
     property bool hovered: false
     property string actionText: ""
+    property string appId: ""
+    property string appName: ""
+    property string appSummary: ""
+    property url appIcon
+    property string appVersion: ""
+    property bool versionBelowName: false
+    property string appBranch: ""
+    property string appArch: ""
+    property bool isRuntime: false
     signal clicked()
     signal actionClicked()
     color: hovered ? Qt.alpha(palette.highlight, 0.15) : "transparent"
@@ -33,11 +43,24 @@ Rectangle {
         radius: 8
         color: palette.base
         Image {
+            id: rowIcon
             anchors.fill: parent
             anchors.margins: 6
-            source: model.isRuntime ? "qrc:/qml/components/blocks.svg" : model.icon
+            source: root.isRuntime ? "qrc:/qml/components/blocks.svg" : root.appIcon
+            onStatusChanged: if (status === Image.Error) console.warn("list icon: failed to load", source, "for", root.appId)
             fillMode: Image.PreserveAspectFit
-            sourceSize { width: 28; height: 28 }
+            asynchronous: true
+            cache: true
+            sourceSize { width: 64; height: 64 }
+        }
+        Text {
+            anchors.centerIn: parent
+            visible: !root.isRuntime && (!root.appIcon || rowIcon.status === Image.Error
+                                           || rowIcon.status === Image.Null)
+            text: (root.appName || root.appId || "?").substring(0, 1).toUpperCase()
+            font: DTK.fontManager.t6
+            color: palette.windowText
+            opacity: 0.45
         }
     }
 
@@ -53,7 +76,7 @@ Rectangle {
             width: parent.width
             // Fall back to the app id when AppStream metadata is missing
             // (base apps / runtimes listed without a display name).
-            text: model.name || model.appId
+            text: root.appName || root.appId
             font: DTK.fontManager.t7
             color: palette.windowText
             elide: Text.ElideRight
@@ -61,7 +84,7 @@ Rectangle {
         }
         Text {
             width: parent.width
-            text: model.summary || ""
+            text: root.versionBelowName ? root.appVersion : root.appSummary
             visible: text.length > 0
             font: DTK.fontManager.t9
             color: palette.windowText
@@ -76,7 +99,8 @@ Rectangle {
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
         width: 110
-        text: model.version
+        text: root.appVersion
+        visible: !root.versionBelowName
         font: DTK.fontManager.t9
         color: palette.windowText
         horizontalAlignment: Text.AlignRight
@@ -91,26 +115,8 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: 16
         anchors.verticalCenter: parent.verticalCenter
-        width: 130
-        height: 36
         text: root.actionText
         visible: root.actionText.length > 0
-        background: Rectangle {
-            radius: height / 2
-            color: actionBtn.text === qsTr("Update") ? "#2ca34a" : palette.button
-            border.color: actionBtn.text === qsTr("Update")
-                          ? Qt.darker("#2ca34a", 1.08)
-                          : Qt.darker(palette.button, 1.08)
-            opacity: actionBtn.enabled ? 1 : 0.5
-        }
-        contentItem: Text {
-            text: actionBtn.text
-            font: DTK.fontManager.t6
-            color: actionBtn.text === qsTr("Update") ? "white" : palette.buttonText
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
-        }
         onClicked: root.actionClicked()
     }
 

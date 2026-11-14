@@ -30,11 +30,25 @@ Rectangle {
             color: palette.base
 
             Image {
+                id: appIcon
                 anchors.fill: parent
                 anchors.margins: 8
                 source: model.icon
+                onStatusChanged: if (status === Image.Error) console.warn("icon: failed to load", source, "for", model.appId)
                 fillMode: Image.PreserveAspectFit
-                sourceSize { width: 64; height: 64 }
+                asynchronous: true
+                cache: true
+                sourceSize { width: 96; height: 96 }
+            }
+
+            Text {
+                anchors.centerIn: parent
+                visible: !model.icon || appIcon.status === Image.Error
+                         || appIcon.status === Image.Null
+                text: (model.name || model.appId || "?").substring(0, 1).toUpperCase()
+                font: DTK.fontManager.t2
+                color: palette.windowText
+                opacity: 0.45
             }
         }
 

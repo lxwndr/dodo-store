@@ -292,6 +292,12 @@ AppItem *FlatpakWorkerPrivate::makeInstalledItem(FlatpakInstalledRef *ref) const
 
     AppItem *item = new AppItem(appId, origin, branch, arch, isRuntime);
     item->setInstalled(true);
+    // Flatpak stores the AppStream display name in installed appdata.
+    // Use it immediately, before the full AppStream pool finishes loading.
+    const char *appdataName = flatpak_installed_ref_get_appdata_name(ref);
+    item->setName(appdataName && *appdataName
+                      ? QString::fromUtf8(appdataName)
+                      : appId);
     item->setInstalledSize(flatpak_installed_ref_get_installed_size(ref));
 
     const char *version = flatpak_installed_ref_get_appdata_version(ref);

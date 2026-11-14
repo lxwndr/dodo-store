@@ -16,6 +16,7 @@ set(DTK_NAME_SUFFIX 6)
 
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS
     Core
+    DBus
     Gui
     Network
     Qml
@@ -85,6 +86,7 @@ add_dependencies(dodo-store dodo-store-translations)
 
 target_link_libraries(dodo-store PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::DBus
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Network
     Qt${QT_VERSION_MAJOR}::Qml
@@ -132,7 +134,7 @@ set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
     "A Flatpak graphical application store built with Qt6, QML and DTK")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION
-    "Dodo Store is a Flatpak graphical application store built with Qt6, CMake, QML and DTK. It browses, searches, installs, uninstalls and updates user-level Flatpak applications, and manages Flatpak remotes.")
+    "Dodo Store is a Flatpak graphical application store built with Qt6, CMake, QML and DTK. It browses, searches, installs, uninstalls and updates user-level Flatpak applications, ")
 set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
 set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "dodo-store authors")

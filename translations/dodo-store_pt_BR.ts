@@ -175,6 +175,11 @@
 <context>
     <name>HomePage</name>
     <message>
+        <location filename="../src/qml/pages/HomePage.qml"/>
+        <source>Search results</source>
+        <translation>Resultados da pesquisa</translation>
+    </message>
+    <message>
         <location filename="../src/qml/pages/HomePage.qml" line="30"/>
         <source>Trending</source>
         <translation>Em alta</translation>
@@ -541,13 +546,8 @@
     </message>
     <message>
         <location filename="../src/qml/main.qml" line="316"/>
-        <source>Home</source>
-        <translation>Página Inicial</translation>
-    </message>
-    <message>
-        <location filename="../src/qml/main.qml" line="317"/>
-        <source>Browse</source>
-        <translation>Navegar</translation>
+        <source>Explore</source>
+        <translation>Explorar</translation>
     </message>
     <message>
         <location filename="../src/qml/main.qml" line="333"/>
@@ -574,6 +574,31 @@
         <location filename="../src/qml/main.qml" line="391"/>
         <source>Remotes</source>
         <translation>Repositórios</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/pages/HomePage.qml"/>
+        <source>Flathub is not available for search. Configure the Flathub remote in Repositories and try again.</source>
+        <translation>O Flathub não está disponível para pesquisa. Configure o repositório Flathub em Repositórios e tente novamente.</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/main.qml"/>
+        <source>Search Flathub</source>
+        <translation>Pesquisar no Flathub</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/main.qml"/>
+        <source>Search installed</source>
+        <translation>Pesquisar instalados</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/main.qml"/>
+        <source>Search installations</source>
+        <translation>Pesquisar instalações</translation>
+    </message>
+    <message>
+        <location filename="../src/qml/main.qml"/>
+        <source>Search updates</source>
+        <translation>Pesquisar atualizações</translation>
     </message>
 </context>
 </TS>

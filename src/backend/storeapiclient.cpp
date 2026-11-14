@@ -21,6 +21,7 @@
 #include <QLocale>
 #include <QDateTime>
 #include <QDebug>
+#include <QFileInfo>
 
 namespace {
 
@@ -160,6 +161,108 @@ void StoreApiClient::refresh(bool force)
             finishOne();
         });
     }
+}
+
+
+QString StoreApiClient::appIconCachePath(const QString &appId) const
+{
+    const QString base = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    const QByteArray hash = QCryptographicHash::hash(appId.toUtf8(),
+                                                      QCryptographicHash::Sha1).toHex();
+    return base + QStringLiteral("/app-icons/") + QString::fromLatin1(hash)
+        + QStringLiteral(".png");
+}
+
+void StoreApiClient::resolveAppIcon(const QString &appId)
+{
+    if (appId.isEmpty())
+        return;
+
+    const QString path = appIconCachePath(appId);
+    if (QFileInfo::exists(path) && QFileInfo(path).size() > 0) {
+        Q_EMIT appIconReady(appId, QUrl::fromLocalFile(path));
+        return;
+    }
+
+    if (m_baseUrl.isEmpty() || m_iconRequests.contains(appId))
+        return;
+
+    m_iconRequests.insert(appId);
+    const QUrl metadataUrl(m_baseUrl + QStringLiteral("/appstream/")
+                           + QString::fromUtf8(QUrl::toPercentEncoding(appId)));
+    QNetworkRequest request(metadataUrl);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                         QNetworkRequest::NoLessSafeRedirectPolicy);
+    request.setTransferTimeout(15000);
+
+    QNetworkReply *reply = m_manager->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, appId, reply] {
+        const QByteArray data = reply->readAll();
+        const bool success = reply->error() == QNetworkReply::NoError;
+        reply->deleteLater();
+        if (!success) {
+            qWarning() << "store api: icon metadata lookup failed for" << appId;
+            m_iconRequests.remove(appId);
+            return;
+        }
+
+        const QJsonDocument doc = QJsonDocument::fromJson(data);
+        if (!doc.isObject()) {
+            m_iconRequests.remove(appId);
+            return;
+        }
+
+        const QJsonObject object = doc.object();
+        QJsonValue iconValue = object.value(QStringLiteral("icon"));
+        if (iconValue.isObject()) {
+            const QJsonObject iconObject = iconValue.toObject();
+            iconValue = iconObject.value(QStringLiteral("url"));
+            if (iconValue.isUndefined())
+                iconValue = iconObject.value(QStringLiteral("cached"));
+        } else if (iconValue.isArray() && !iconValue.toArray().isEmpty()) {
+            const QJsonValue first = iconValue.toArray().first();
+            iconValue = first.isObject()
+                ? first.toObject().value(QStringLiteral("url")) : first;
+        }
+
+        const QUrl iconUrl(iconValue.toString());
+        if (!iconUrl.isValid() || iconUrl.isEmpty()) {
+            qWarning() << "store api: no usable icon URL in metadata for" << appId;
+            m_iconRequests.remove(appId);
+            return;
+        }
+        downloadAppIcon(appId, iconUrl);
+    });
+}
+
+void StoreApiClient::downloadAppIcon(const QString &appId, const QUrl &iconUrl)
+{
+    QNetworkRequest request(iconUrl);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                         QNetworkRequest::NoLessSafeRedirectPolicy);
+    request.setTransferTimeout(20000);
+    QNetworkReply *reply = m_manager->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, appId, reply] {
+        const QByteArray data = reply->readAll();
+        const bool success = reply->error() == QNetworkReply::NoError && !data.isEmpty();
+        reply->deleteLater();
+
+        const QString path = appIconCachePath(appId);
+        if (success) {
+            QDir dir(QFileInfo(path).absolutePath());
+            if (dir.mkpath(QStringLiteral("."))) {
+                QFile file(path);
+                if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)
+                    && file.write(data) == data.size()) {
+                    file.close();
+                    Q_EMIT appIconReady(appId, QUrl::fromLocalFile(path));
+                }
+            }
+        } else {
+            qWarning() << "store api: icon download failed for" << appId;
+        }
+        m_iconRequests.remove(appId);
+    });
 }
 
 void StoreApiClient::finishOne()

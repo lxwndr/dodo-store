@@ -13,7 +13,14 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QStandardPaths>
+#include <QNetworkAccessManager>
+#include <QNetworkDiskCache>
+#include <QQmlNetworkAccessManagerFactory>
 #include <QStringList>
+#include <QDBusConnection>
+#include <QDBusMessage>
+#include <QDBusPendingCall>
+#include <QVariantMap>
 
 #include <DLog>
 #include <DGuiApplicationHelper>
@@ -21,7 +28,81 @@
 #include "backend/flatpakbackend.h"
 #include "models/appfilterproxymodel.h"
 
+class NotificationService : public QObject
+{
+    Q_OBJECT
+public:
+    using QObject::QObject;
+
+    Q_INVOKABLE void notify(const QString &title, const QString &body)
+    {
+        QDBusMessage message = QDBusMessage::createMethodCall(
+            QStringLiteral("org.freedesktop.Notifications"),
+            QStringLiteral("/org/freedesktop/Notifications"),
+            QStringLiteral("org.freedesktop.Notifications"),
+            QStringLiteral("Notify"));
+        message << QStringLiteral("Dodo Store")
+                << uint(0)
+                << QStringLiteral("dodo-store")
+                << title
+                << body
+                << QStringList()
+                << QVariantMap()
+                << 5000;
+
+        const QDBusConnection bus = QDBusConnection::sessionBus();
+        if (!bus.isConnected()) {
+            qWarning() << "notifications: session D-Bus is unavailable";
+            return;
+        }
+        bus.asyncCall(message);
+    }
+};
+
 namespace {
+
+// Persist QML image downloads (notably AppStream icons) between launches.
+// Prefer cached entries, while allowing Qt to refresh expired responses.
+class CachedNetworkAccessManager : public QNetworkAccessManager
+{
+public:
+    explicit CachedNetworkAccessManager(QObject *parent = nullptr)
+        : QNetworkAccessManager(parent)
+    {
+        auto *diskCache = new QNetworkDiskCache(this);
+        QString cachePath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+        if (cachePath.isEmpty())
+            cachePath = QDir::homePath() + QStringLiteral("/.cache/dodo-store");
+        cachePath += QStringLiteral("/network");
+        QDir().mkpath(cachePath);
+        diskCache->setCacheDirectory(cachePath);
+        diskCache->setMaximumCacheSize(256 * 1024 * 1024);
+        setCache(diskCache);
+    }
+
+protected:
+    QNetworkReply *createRequest(Operation operation, const QNetworkRequest &original,
+                                 QIODevice *outgoingData = nullptr) override
+    {
+        QNetworkRequest request(original);
+        if (operation == GetOperation
+            && (request.url().scheme() == QLatin1String("http")
+                || request.url().scheme() == QLatin1String("https"))) {
+            request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
+                                 QNetworkRequest::PreferCache);
+        }
+        return QNetworkAccessManager::createRequest(operation, request, outgoingData);
+    }
+};
+
+class CachedNetworkAccessManagerFactory : public QQmlNetworkAccessManagerFactory
+{
+public:
+    QNetworkAccessManager *create(QObject *parent) override
+    {
+        return new CachedNetworkAccessManager(parent);
+    }
+};
 
 // The flatpak web link (or ".flatpakref" path) passed on the command line, if
 // any. Flathub launches the scheme handler as
@@ -94,6 +175,7 @@ int main(int argc, char *argv[])
     server.listen(socketPath);
 
     QQmlApplicationEngine engine;
+    engine.setNetworkAccessManagerFactory(new CachedNetworkAccessManagerFactory);
 
     // Deepin's Chameleon Qt Quick Controls style ships with dtkdeclarative.
     QQuickStyle::setStyle("Chameleon");
@@ -103,7 +185,9 @@ int main(int argc, char *argv[])
 
     // The single backend instance; QML talks to this object exclusively.
     FlatpakBackend backend;
+    NotificationService notifications;
     engine.rootContext()->setContextProperty("flatpakBackend", &backend);
+    engine.rootContext()->setContextProperty("notificationService", &notifications);
 
     QObject::connect(&server, &QLocalServer::newConnection, &app, [&server, &backend] {
         while (QLocalSocket *socket = server.nextPendingConnection()) {
@@ -121,6 +205,20 @@ int main(int argc, char *argv[])
     if (engine.rootObjects().isEmpty())
         return -1;
 
+    // Context properties are not consistently exposed to the root QML object
+    // by every supported Qt/DTK runtime. Inject the already-created backend
+    // directly into the root window after loading; page properties bound to
+    // root.backend then receive the same live QObject instance.
+    QObject *rootObject = engine.rootObjects().constFirst();
+    const bool backendInjected = rootObject->setProperty(
+        "backend", QVariant::fromValue(static_cast<QObject *>(&backend)));
+    if (!backendInjected) {
+        qCritical() << "QML backend injection failed: root window has no backend property";
+        return -1;
+    }
+    qInfo() << "QML backend injected:" << rootObject->property("backend").value<QObject *>()
+            << "expected:" << static_cast<QObject *>(&backend);
+
     // Kick off the initial listing on the worker thread. The full browse
     // catalog is only loaded when the Browse page is opened (see BrowsePage),
     // so startup does not enrich thousands of apps on the GUI thread.
@@ -132,3 +230,5 @@ int main(int argc, char *argv[])
 
     return app.exec();
 }
+
+#include "main.moc"
