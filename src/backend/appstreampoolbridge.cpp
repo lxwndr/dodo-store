@@ -243,7 +243,7 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
         item->setSummary(summary);
         changed = true;
     }
-    const QString description = comp.description();
+    const QString description = plainText(comp.description());
     if (!description.isEmpty()) {
         item->setDescription(description);
         changed = true;
@@ -332,7 +332,7 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
             QUrl thumbnail;
             for (const auto &img : shot.imagesAll()) {
                 const QUrl u = img.url();
-                if (!u.isValid())
+                if (u.isEmpty() || !u.isValid())
                     continue;
                 if (img.kind() == AppStream::Image::KindThumbnail) {
                     if (thumbnail.isEmpty())
