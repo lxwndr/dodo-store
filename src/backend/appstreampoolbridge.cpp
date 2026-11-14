@@ -10,6 +10,9 @@
 #include <QUrl>
 #include <QDateTime>
 #include <QLocale>
+#include <QIcon>
+#include <QPixmap>
+#include <QBuffer>
 #include <algorithm>
 
 #include <AppStreamQt/component.h>
@@ -305,7 +308,14 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
     // an empty source.
     const QList<AppStream::Icon> icons = comp.icons();
     QUrl selectedIcon;
+    QString stockIconName;
     for (const auto &icon : icons) {
+        if (icon.kind() == AppStream::Icon::KindStock) {
+            if (stockIconName.isEmpty())
+                stockIconName = icon.name();
+            continue;
+        }
+
         const QUrl url = icon.url();
         if (url.isEmpty() || !url.isValid())
             continue;
@@ -317,6 +327,22 @@ bool AppStreamPoolBridge::enrich(AppItem *item)
         if (selectedIcon.isEmpty())
             selectedIcon = url;
     }
+
+    // Stock icons have a theme name instead of a file/URL. Resolve them with
+    // the active desktop icon theme and pass the resulting image to QML.
+    if (selectedIcon.isEmpty() && !stockIconName.isEmpty()) {
+        const QIcon themedIcon = QIcon::fromTheme(stockIconName);
+        if (!themedIcon.isNull()) {
+            const QPixmap pixmap = themedIcon.pixmap(128, 128);
+            QByteArray imageData;
+            QBuffer buffer(&imageData);
+            if (buffer.open(QIODevice::WriteOnly) && pixmap.save(&buffer, "PNG")) {
+                selectedIcon = QUrl(QStringLiteral("data:image/png;base64,")
+                                    + QString::fromLatin1(imageData.toBase64()));
+            }
+        }
+    }
+
     if (!selectedIcon.isEmpty() && item->iconUrl() != selectedIcon) {
         item->setIcon(selectedIcon);
         changed = true;
