@@ -97,13 +97,13 @@ QString plainText(const QString &rich)
     QString text = rich;
     text.replace(QRegularExpression(QStringLiteral("<br\\s*/?>"),
                                     QRegularExpression::CaseInsensitiveOption),
-                 QStringLiteral("\\n"));
+                 QStringLiteral("\n"));
     text.replace(QRegularExpression(QStringLiteral("<li\\b[^>]*>"),
                                     QRegularExpression::CaseInsensitiveOption),
-                 QStringLiteral("\\n• "));
+                 QStringLiteral("\n• "));
     text.replace(QRegularExpression(QStringLiteral("</(p|li|div|h[1-6])>"),
                                     QRegularExpression::CaseInsensitiveOption),
-                 QStringLiteral("\\n\\n"));
+                 QStringLiteral("\n\n"));
     text.remove(QRegularExpression(QStringLiteral("<[^>]*>")));
     text.replace(QStringLiteral("&nbsp;"), QStringLiteral(" "));
     text.replace(QStringLiteral("&#160;"), QStringLiteral(" "));
