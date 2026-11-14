@@ -57,6 +57,7 @@ Item {
                 appSummary: model.summary
                 appIcon: model.icon
                 appVersion: model.version
+                versionBelowName: true
                 appBranch: model.branch
                 appArch: model.arch
                 isRuntime: model.isRuntime
