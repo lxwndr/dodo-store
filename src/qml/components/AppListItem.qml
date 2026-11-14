@@ -22,6 +22,7 @@ Rectangle {
     property string appSummary: ""
     property url appIcon
     property string appVersion: ""
+    property bool versionBelowName: false
     property string appBranch: ""
     property string appArch: ""
     property bool isRuntime: false
@@ -83,7 +84,7 @@ Rectangle {
         }
         Text {
             width: parent.width
-            text: root.appSummary
+            text: root.versionBelowName ? root.appVersion : root.appSummary
             visible: text.length > 0
             font: DTK.fontManager.t9
             color: palette.windowText
@@ -99,6 +100,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 110
         text: root.appVersion
+        visible: !root.versionBelowName
         font: DTK.fontManager.t9
         color: palette.windowText
         horizontalAlignment: Text.AlignRight
