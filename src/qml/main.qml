@@ -84,7 +84,7 @@ ApplicationWindow {
             return qsTr("Search Flathub")
         if (root.pageIndex === 1)
             return qsTr("Search installed")
-        return qsTr("Search installations")
+        return qsTr("Search updates")
     }
 
     onPageIndexChanged: applyGlobalSearch(searchField.text)
