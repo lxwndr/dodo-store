@@ -115,8 +115,8 @@ QString plainText(const QString &rich)
     text.replace(QStringLiteral("&quot;"), QStringLiteral("\""));
     text.replace(QRegularExpression(QStringLiteral("[\\t \\x{00A0}]+")),
                  QStringLiteral(" "));
-    text.replace(QRegularExpression(QStringLiteral(" *\\n *")), QStringLiteral("\\n"));
-    text.replace(QRegularExpression(QStringLiteral("\\n{3,}")), QStringLiteral("\\n\\n"));
+    text.replace(QRegularExpression(QStringLiteral(" *\\n *")), QStringLiteral("\n"));
+    text.replace(QRegularExpression(QStringLiteral("\\n{3,}")), QStringLiteral("\n\n"));
     return text.trimmed();
 }
 
