@@ -207,31 +207,6 @@ Item {
         }
     }
 
-    // Primary actions use clear semantic colors while keeping the
-    // native DTK button geometry and rounded appearance.
-    component StoreActionButton: Button {
-        property color actionColor: palette.highlight
-        property color actionHoverColor: Qt.darker(actionColor, 1.08)
-
-        implicitHeight: 36
-        leftPadding: 16
-        rightPadding: 16
-
-        background: Rectangle {
-            radius: 8
-            color: parent.hovered ? parent.actionHoverColor : parent.actionColor
-            opacity: parent.enabled ? 1.0 : 0.55
-        }
-
-        contentItem: Text {
-            text: parent.text
-            font: DTK.fontManager.t7
-            color: "#ffffff"
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-        }
-    }
-
     // A rounded tag chip (remote / category).
     component TagChip: Rectangle {
         property string label: ""
@@ -345,13 +320,10 @@ Item {
                         spacing: 8
 
                         // Primary action: Install, or Update when one is available.
-                        StoreActionButton {
+                        Button {
                             visible: !root.installed || root.updateAvailable
                             enabled: !backend.busy
-                            actionColor: root.updateAvailable ? "#269B55" : palette.highlight
-                            actionHoverColor: root.updateAvailable
-                                               ? Qt.darker("#269B55", 1.08)
-                                               : Qt.darker(palette.highlight, 1.08)
+                            highlighted: true
                             text: root.updateAvailable ? qsTr("Update") : qsTr("Install")
                             onClicked: {
                                 if (root.updateAvailable)
@@ -363,10 +335,10 @@ Item {
                         }
 
                         // Launch the installed app without changing its install state.
-                        StoreActionButton {
+                        Button {
                             visible: root.installed
                             enabled: !backend.busy
-                            actionColor: palette.highlight
+                            highlighted: true
                             text: qsTr("Open")
                             onClicked: backend.launchApp(root.appAppId,
                                                                 root.appBranch, root.appArch)
