@@ -17,6 +17,14 @@ Rectangle {
     id: root
     property bool hovered: false
     property string actionText: ""
+    property string appId: ""
+    property string appName: ""
+    property string appSummary: ""
+    property url appIcon
+    property string appVersion: ""
+    property string appBranch: ""
+    property string appArch: ""
+    property bool isRuntime: false
     signal clicked()
     signal actionClicked()
     color: hovered ? Qt.alpha(palette.highlight, 0.15) : "transparent"
@@ -37,8 +45,8 @@ Rectangle {
             id: rowIcon
             anchors.fill: parent
             anchors.margins: 6
-            source: model.isRuntime ? "qrc:/qml/components/blocks.svg" : model.icon
-            onStatusChanged: if (status === Image.Error) console.warn("list icon: failed to load", source, "for", model.appId)
+            source: root.isRuntime ? "qrc:/qml/components/blocks.svg" : root.appIcon
+            onStatusChanged: if (status === Image.Error) console.warn("list icon: failed to load", source, "for", root.appId)
             fillMode: Image.PreserveAspectFit
             asynchronous: true
             cache: true
@@ -46,9 +54,9 @@ Rectangle {
         }
         Text {
             anchors.centerIn: parent
-            visible: !model.isRuntime && (!model.icon || rowIcon.status === Image.Error
+            visible: !root.isRuntime && (!root.appIcon || rowIcon.status === Image.Error
                                            || rowIcon.status === Image.Null)
-            text: (model.name || model.appId || "?").substring(0, 1).toUpperCase()
+            text: (root.appName || root.appId || "?").substring(0, 1).toUpperCase()
             font: DTK.fontManager.t6
             color: palette.windowText
             opacity: 0.45
@@ -75,7 +83,7 @@ Rectangle {
         }
         Text {
             width: parent.width
-            text: model.summary || ""
+            text: root.appSummary
             visible: text.length > 0
             font: DTK.fontManager.t9
             color: palette.windowText
@@ -90,7 +98,7 @@ Rectangle {
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
         width: 110
-        text: model.version
+        text: root.appVersion
         font: DTK.fontManager.t9
         color: palette.windowText
         horizontalAlignment: Text.AlignRight
