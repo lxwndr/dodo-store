@@ -8,6 +8,7 @@
 #include <QString>
 #include <QStringList>
 #include <QVariantList>
+#include <QUrl>
 
 #include "../models/applistmodel.h"
 
@@ -197,6 +198,7 @@ private Q_SLOTS:
     void onApiCollectionFailed(const QString &collection, const QString &error,
                                bool hadCache, const QVariantList &cachedApps);
     void onApiRefreshStarted();
+    void onInstalledIconReady(const QString &appId, const QUrl &iconUrl);
     void onProgressChanged(double value);
     void onStatusChanged(const QString &status);
     void onAppStreamLoaded(bool success);
