@@ -45,7 +45,7 @@ FlatpakBackend::FlatpakBackend(QObject *parent)
     connect(m_storeApi, &StoreApiClient::refreshStarted,
             this, &FlatpakBackend::onApiRefreshStarted);
     connect(m_storeApi, &StoreApiClient::appIconReady,
-            this, &FlatpakBackend::onInstalledIconReady);
+            this, &FlatpakBackend::onAppIconReady);
 
     qRegisterMetaType<QList<AppItem *>>("QList<AppItem*>");
 
@@ -240,8 +240,14 @@ void FlatpakBackend::loadMoreBrowse()
     m_browseShown = end;
 
     // Fully enrich only the rows being added to the visible listing.
-    for (AppItem *item : nextItems)
+    for (AppItem *item : nextItems) {
+        if (!item || item->isRuntime())
+            continue;
+        // Keep AppStream as an immediate fallback, but resolve the persistent
+        // Flathub cache/download for every app that enters the visible list.
         m_appstream->enrich(item);
+        m_storeApi->resolveAppIcon(item->appId());
+    }
     qDebug() << "browse:" << m_browseCategory << m_browseSearchTerm
              << "- showing" << m_browseShown << "of" << total;
 }
@@ -915,12 +921,19 @@ void FlatpakBackend::enrichBatch(AppListModel *model, int from)
                                   Qt::QueuedConnection);
 }
  
-void FlatpakBackend::onInstalledIconReady(const QString &appId, const QUrl &iconUrl)
+void FlatpakBackend::onAppIconReady(const QString &appId, const QUrl &iconUrl)
 {
     if (iconUrl.isEmpty())
         return;
+
+    // The same icon resolver serves Installed and Browse. Browse items are
+    // owned by browseModel; browseListModel only references those objects.
     for (AppItem *item : m_installedModel->items()) {
-        if (item && item->appId() == appId && item->iconUrl().isEmpty())
+        if (item && item->appId() == appId)
+            item->setIcon(iconUrl);
+    }
+    for (AppItem *item : m_browseModel->items()) {
+        if (item && item->appId() == appId)
             item->setIcon(iconUrl);
     }
 }
