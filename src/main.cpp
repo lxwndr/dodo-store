@@ -13,6 +13,9 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QStandardPaths>
+#include <QNetworkAccessManager>
+#include <QNetworkDiskCache>
+#include <QQmlNetworkAccessManagerFactory>
 #include <QStringList>
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -57,6 +60,49 @@ public:
 };
 
 namespace {
+
+// Persist QML image downloads (notably AppStream icons) between launches.
+// Prefer cached entries, while allowing Qt to refresh expired responses.
+class CachedNetworkAccessManager : public QNetworkAccessManager
+{
+public:
+    explicit CachedNetworkAccessManager(QObject *parent = nullptr)
+        : QNetworkAccessManager(parent)
+    {
+        auto *diskCache = new QNetworkDiskCache(this);
+        QString cachePath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+        if (cachePath.isEmpty())
+            cachePath = QDir::homePath() + QStringLiteral("/.cache/dodo-store");
+        cachePath += QStringLiteral("/network");
+        QDir().mkpath(cachePath);
+        diskCache->setCacheDirectory(cachePath);
+        diskCache->setMaximumCacheSize(256 * 1024 * 1024);
+        setCache(diskCache);
+    }
+
+protected:
+    QNetworkReply *createRequest(Operation operation, const QNetworkRequest &original,
+                                 QIODevice *outgoingData = nullptr) override
+    {
+        QNetworkRequest request(original);
+        if (operation == GetOperation
+            && (request.url().scheme() == QLatin1String("http")
+                || request.url().scheme() == QLatin1String("https"))) {
+            request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
+                                 QNetworkRequest::PreferCache);
+        }
+        return QNetworkAccessManager::createRequest(operation, request, outgoingData);
+    }
+};
+
+class CachedNetworkAccessManagerFactory : public QQmlNetworkAccessManagerFactory
+{
+public:
+    QNetworkAccessManager *create(QObject *parent) override
+    {
+        return new CachedNetworkAccessManager(parent);
+    }
+};
 
 // The flatpak web link (or ".flatpakref" path) passed on the command line, if
 // any. Flathub launches the scheme handler as
@@ -129,6 +175,7 @@ int main(int argc, char *argv[])
     server.listen(socketPath);
 
     QQmlApplicationEngine engine;
+    engine.setNetworkAccessManagerFactory(new CachedNetworkAccessManagerFactory);
 
     // Deepin's Chameleon Qt Quick Controls style ships with dtkdeclarative.
     QQuickStyle::setStyle("Chameleon");
