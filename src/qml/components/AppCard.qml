@@ -38,7 +38,7 @@ Rectangle {
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 cache: true
-                sourceSize { width: 128; height: 128 }
+                sourceSize { width: 96; height: 96 }
             }
 
             Text {
